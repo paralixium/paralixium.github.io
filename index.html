@@ -2,881 +2,600 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Project X | Neon Anonymous Messenger</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>paralixium | bio</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Courier New', 'Fira Code', monospace;
+        :root {
+            --bg: #050505;
+            --terminal-bg: #080808;
+            --green-neon: #39ff14;
+            --green-bright: #00ff41;
+            --green-dim: #00aa2e;
+            --green-dark: #005c1a;
+            --green-glow: rgba(0, 255, 65, 0.7);
+            --green-glow-strong: rgba(57, 255, 20, 0.9);
+            --text: #e0e0e0;
+            --cyan: #00cccc;
+            --shadow-glow: 0 0 8px rgba(0, 255, 65, 0.8), 0 0 18px rgba(0, 255, 65, 0.5);
+            --shadow-glow-strong: 0 0 12px rgba(57, 255, 20, 0.9), 0 0 30px rgba(57, 255, 20, 0.7);
         }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            min-height: 100vh;
-            background: radial-gradient(circle at 20% 30%, #0a0f1a, #03060c);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            background: var(--bg);
+            font-family: 'Courier New', 'Lucida Console', 'Consolas', monospace;
+            overflow: hidden;
+            width: 100vw; height: 100vh;
+            cursor: crosshair;
+            user-select: none;
+            font-weight: 600;
+            letter-spacing: 0.3px;
         }
-
-        /* ----- ЗАГРУЗОЧНЫЙ ЭКРАН (КОНСОЛЬ + МАСКА) ----- */
-        .loader-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #010101;
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(8px);
-            transition: opacity 0.8s ease, visibility 0.8s ease;
+        #matrixCanvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 100; background: #000;
+            transition: opacity 0.6s ease-out;
         }
-
-        .loader-container {
-            max-width: 1300px;
-            width: 90%;
-            background: rgba(5, 15, 12, 0.85);
-            border: 2px solid #0f6;
-            border-radius: 32px;
-            padding: 2rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            box-shadow: 0 0 35px #0f6, inset 0 0 10px #0f622;
+        #matrixCanvas.fading { opacity: 0; pointer-events: none; }
+        #matrixCanvas.hidden { display: none; }
+        #splashTitle {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 102;
+            font-family: 'Courier New', 'Lucida Console', 'Consolas', monospace;
+            font-size: clamp(32px, 8vw, 72px);
+            font-weight: bold; letter-spacing: 4px;
+            text-align: center; transition: opacity 0.5s ease-out;
+            line-height: 1.2; cursor: pointer;
         }
-
-        .console-box {
-            flex: 2;
-            background: #000000aa;
-            border-radius: 20px;
-            padding: 1.2rem;
-            border-left: 4px solid #0f6;
-            box-shadow: 0 0 15px #0f6;
+        #splashTitle .neon-green {
+            color: var(--green-neon);
+            text-shadow: 0 0 15px var(--green-neon), 0 0 35px var(--green-neon), 0 0 70px #00ff66;
+            animation: titleGlow 2.5s ease-in-out infinite;
         }
-
+        #splashTitle .white-text {
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 25px rgba(255,255,255,0.5), 0 0 40px rgba(255,255,255,0.3);
+            margin-left: 12px;
+        }
+        @keyframes titleGlow {
+            0%,100% { text-shadow: 0 0 15px var(--green-neon), 0 0 35px var(--green-neon), 0 0 70px #00ff66; }
+            50% { text-shadow: 0 0 25px #00ff66, 0 0 55px #00ff44, 0 0 90px #00ff44; }
+        }
+        #clickHint {
+            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+            z-index: 101; color: var(--green-neon); font-size: 13px;
+            font-weight: bold; letter-spacing: 4px;
+            text-shadow: var(--shadow-glow-strong);
+            animation: hintPulse 2s ease-in-out infinite;
+            pointer-events: none; text-align: center;
+        }
+        @keyframes hintPulse {
+            0%,100% { opacity: 0.5; text-shadow: var(--shadow-glow); }
+            50% { opacity: 1; text-shadow: var(--shadow-glow-strong); }
+        }
+        #consoleScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 90; background: var(--terminal-bg);
+            display: none; flex-direction: column;
+            padding: 20px 24px; overflow: hidden;
+            box-shadow: inset 0 0 60px rgba(0,255,65,0.03);
+        }
+        #consoleScreen.active { display: flex; }
+        #consoleScreen.fadingOut { opacity: 0; transition: opacity 0.5s ease-out; pointer-events: none; }
         .console-header {
-            color: #0f6;
-            border-bottom: 1px solid #0f6;
-            padding-bottom: 8px;
-            margin-bottom: 20px;
-            font-weight: bold;
+            text-align: center; font-size: 18px; font-weight: bold;
+            letter-spacing: 3px; padding: 8px 0 14px;
+            border-bottom: 1px solid var(--green-dark);
+            margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,255,65,0.1);
+            word-break: break-word;
+        }
+        .console-header .neon-green {
+            color: var(--green-neon); text-shadow: var(--shadow-glow-strong);
+            animation: headerGlowGreen 3s ease-in-out infinite;
+        }
+        .console-header .white-text {
+            color: #ffffff; text-shadow: 0 0 5px rgba(255,255,255,0.5), 0 0 12px rgba(255,255,255,0.3);
+        }
+        @keyframes headerGlowGreen {
+            0%,100% { text-shadow: 0 0 10px var(--green-neon), 0 0 25px var(--green-neon); }
+            50% { text-shadow: 0 0 20px #00ff66, 0 0 45px #00ff44, 0 0 70px #00ff44; }
+        }
+        .console-body {
+            flex: 1; color: var(--green-dim); font-size: 14px;
+            font-weight: bold; line-height: 1.7; overflow-y: auto;
+            padding: 6px 4px; letter-spacing: 0.6px;
+            white-space: pre-wrap; word-break: break-all;
+            text-shadow: 0 0 3px rgba(0,255,65,0.3);
+        }
+        .console-body .line { opacity: 0; animation: lineAppear 0.15s forwards; font-weight: bold; text-shadow: 0 0 6px rgba(0,255,65,0.4); }
+        .console-body .line.visible { opacity: 1; }
+        @keyframes lineAppear { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
+        .console-body .line-green { color: var(--green-bright); text-shadow: 0 0 10px var(--green-glow); }
+        .console-body .line-amber { color: #ffaa00; text-shadow: 0 0 8px rgba(255,170,0,0.7); }
+        .console-body .line-cyan { color: var(--cyan); text-shadow: 0 0 8px rgba(0,204,204,0.7); }
+        .console-body .line-dim { color: #aaaaaa; text-shadow: 0 0 4px rgba(255,255,255,0.3); }
+        .console-body .cursor-blink {
+            display: inline-block; width: 10px; height: 16px;
+            background: var(--green-neon); animation: blink 0.7s step-end infinite;
+            vertical-align: middle; margin-left: 3px;
+            box-shadow: 0 0 10px var(--green-glow), 0 0 20px var(--green-glow);
+        }
+        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 200;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
+            opacity: 0.6;
         }
 
-        .console-lines {
-            min-height: 320px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .line {
-            margin-bottom: 8px;
-            color: #b0ffc0;
-            border-left: 2px solid #0f6;
-            padding-left: 10px;
-        }
-
-        .cursor-blink {
-            display: inline-block;
-            width: 10px;
-            height: 16px;
-            background: #0f6;
-            animation: blink 1s infinite;
-            vertical-align: middle;
-            margin-left: 4px;
-        }
-
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-        .mask-box {
-            flex: 1.2;
-            background: #000000aa;
-            border-radius: 20px;
-            padding: 1rem;
-            text-align: center;
-            border-right: 2px solid #0f6;
-            box-shadow: 0 0 15px #0f6;
-        }
-
-        .mask-title {
-            color: #0f6;
-            letter-spacing: 3px;
-            margin-bottom: 20px;
-        }
-
-        .ascii-art {
-            font-family: monospace;
-            font-size: 10px;
-            line-height: 1.2;
-            color: #2eff9e;
-            background: #021007;
-            padding: 15px;
-            border-radius: 24px;
-            white-space: pre;
-            overflow-x: auto;
-            text-shadow: 0 0 4px #0f0;
-        }
-
-        /* ----- ОСНОВНОЕ ПРИЛОЖЕНИЕ ----- */
-        .app {
-            display: none;
-            width: 100%;
-            max-width: 1400px;
-            background: rgba(5, 15, 12, 0.6);
-            border-radius: 32px;
-            backdrop-filter: blur(8px);
-            border: 2px solid #0f6;
-            box-shadow: 0 0 30px #0f6, inset 0 0 10px #0f622;
-            overflow: hidden;
-        }
-
-        /* Профиль (кликабельный) */
-        .profile-card {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            padding: 16px 24px;
-            background: #010a05cc;
-            border-bottom: 2px solid #0f6;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .profile-card:hover {
-            background: #0a2015cc;
-            box-shadow: inset 0 0 15px #0f6;
-        }
-        .avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: #0a2a1a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            border: 2px solid #0f6;
-            box-shadow: 0 0 12px #0f6;
-        }
-        .avatar img, .avatar span {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            font-size: 38px;
-            text-align: center;
-            line-height: 1;
-        }
-        .user-details {
-            flex: 1;
-        }
-        .user-nick {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #0f6;
-            text-shadow: 0 0 6px #0f0;
-        }
-        .user-id {
-            font-size: 0.7rem;
-            color: #8fcaa0;
-        }
-        .logout-btn {
-            background: none;
-            border: 1px solid #f66;
-            color: #f66;
-            padding: 6px 14px;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .logout-btn:hover {
-            background: #f66;
-            color: black;
-            box-shadow: 0 0 12px #f66;
-        }
-
-        /* Табы */
-        .tabs {
-            display: flex;
-            background: #000b05;
-            gap: 2px;
-        }
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 14px;
-            background: #071a10;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            font-weight: bold;
-            letter-spacing: 1px;
-            transition: 0.2s;
-        }
-        .tab.active {
-            border-bottom-color: #0f6;
-            background: #0c2a1c;
-            text-shadow: 0 0 5px #0f0;
-            box-shadow: inset 0 0 8px #0f6;
-        }
-
-        /* Панели чатов */
-        .panel {
-            padding: 20px;
-        }
-        .messages-area {
-            height: 45vh;
-            background: #03070aaa;
-            border-radius: 24px;
-            padding: 16px;
-            overflow-y: auto;
-            border: 1px solid #0f6;
-            box-shadow: inset 0 0 8px #0f6, 0 0 8px #0f6;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .message {
-            background: #0f1912;
-            border-left: 5px solid #0f6;
-            padding: 8px 14px;
-            border-radius: 20px;
-            width: fit-content;
-            max-width: 80%;
-            box-shadow: 0 0 6px #0f6;
-        }
-        .message.own {
-            align-self: flex-end;
-            border-left-color: #fa3;
-            box-shadow: 0 0 6px #fa3;
-        }
-        .msg-meta {
-            font-size: 0.65rem;
-            color: #9cdbab;
-            display: flex;
-            gap: 12px;
-        }
-        .input-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 16px;
-        }
-        .input-group input {
-            flex: 1;
-            background: #0a100e;
-            border: 1px solid #0f6;
-            padding: 12px 18px;
-            border-radius: 60px;
-            color: #0f6;
-            font-family: monospace;
-            outline: none;
-            box-shadow: 0 0 5px #0f6;
-        }
-        button {
-            background: #0b2a1a;
-            border: 1px solid #0f6;
-            color: #0f6;
-            padding: 0 24px;
-            border-radius: 60px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 0 5px #0f6;
-        }
-        button:hover {
-            background: #0f6;
-            color: black;
-            box-shadow: 0 0 15px #0f6;
-        }
-
-        /* Личные чаты: друзья и поиск */
-        .private-layout {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        .friends-panel {
-            flex: 1.2;
-            background: #010b06aa;
-            border-radius: 24px;
-            padding: 16px;
-            border: 1px solid #0f6;
-            box-shadow: 0 0 12px #0f6;
-        }
-        .search-panel {
-            flex: 1;
-            background: #010b06aa;
-            border-radius: 24px;
-            padding: 16px;
-            border: 1px solid #0f6;
-            box-shadow: 0 0 12px #0f6;
-        }
-        .friend-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px;
-            border-bottom: 1px solid #0f6;
-            cursor: pointer;
-            transition: 0.1s;
-        }
-        .friend-item:hover {
-            background: #0f6a2a;
-            text-shadow: 0 0 2px black;
-        }
-        .pm-chat {
-            margin-top: 24px;
-            background: #010b06aa;
-            border-radius: 24px;
-            padding: 16px;
-            border: 1px solid #0f6;
-        }
-        .pending-area {
-            margin-top: 16px;
-            font-size: 0.8rem;
-        }
-        .search-result button {
-            margin: 5px;
-            padding: 4px 12px;
-        }
-
-        /* Модалка редактирования */
-        .modal {
+        /* Экран с тремя точками */
+        #loadingDotsScreen {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: #000000dd;
-            backdrop-filter: blur(12px);
-            display: flex;
-            align-items: center;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 85;
+            background: rgba(0,0,0,0.6); /* полупрозрачный фон, чтобы матрица была видна */
+            backdrop-filter: blur(2px);
+            display: none;
             justify-content: center;
-            z-index: 3000;
-        }
-        .modal-card {
-            background: #0a1810;
-            border: 2px solid #0f6;
-            border-radius: 32px;
-            padding: 28px;
-            width: 350px;
-            text-align: center;
-            box-shadow: 0 0 35px #0f6;
-        }
-        .modal-card input {
-            width: 100%;
-            margin: 12px 0;
-            padding: 10px;
-            background: black;
-            border: 1px solid #0f6;
-            color: #0f6;
-            border-radius: 40px;
-        }
-        .avatar-preview {
-            width: 80px;
-            height: 80px;
-            margin: 10px auto;
-            border-radius: 50%;
-            border: 2px solid #0f6;
-            overflow: hidden;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            background: #021008;
+            gap: 15px; /* точки ближе друг к другу */
+            opacity: 1;
+            transition: opacity 0.6s ease-out;
         }
-        .hidden { display: none; }
+        #loadingDotsScreen.active { display: flex; }
+        #loadingDotsScreen.fading { opacity: 0; pointer-events: none; }
+        .dot {
+            font-size: 100px;
+            color: #ffffff;
+            text-shadow: 0 0 25px rgba(255,255,255,0.9), 0 0 50px rgba(255,255,255,0.6);
+            opacity: 0;
+            animation: dotSequence 2s ease-in-out infinite;
+        }
+        .dot:nth-child(1) { animation-delay: 0s; }
+        .dot:nth-child(2) { animation-delay: 0.6s; }
+        .dot:nth-child(3) { animation-delay: 1.2s; }
+        @keyframes dotSequence {
+            0%, 15% { opacity: 0; }
+            40%, 60% { opacity: 1; }
+            85%, 100% { opacity: 0; }
+        }
+
+        #mainScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 80; background: var(--bg);
+            display: none; flex-direction: column;
+            overflow-y: auto; overflow-x: hidden;
+            box-shadow: inset 0 0 100px rgba(0,255,65,0.02);
+        }
+        #mainScreen.active { display: flex; }
+        #mainScreen.fadingIn { animation: fadeInMain 0.7s ease-out forwards; }
+        @keyframes fadeInMain { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: blur(0); } }
+        .main-header {
+            border-bottom: 2px solid var(--green-dark);
+            padding: 18px 24px 14px;
+            display: flex; align-items: center; justify-content: flex-start;
+            background: rgba(0,0,0,0.85); position: sticky; top: 0; z-index: 10;
+            backdrop-filter: blur(8px); box-shadow: 0 2px 15px rgba(0,255,65,0.2);
+        }
+        .main-header .logo {
+            color: var(--green-neon); font-size: 20px; font-weight: bold;
+            letter-spacing: 3px; text-shadow: var(--shadow-glow-strong);
+            filter: drop-shadow(0 0 8px rgba(0,255,65,0.5));
+        }
+        .main-header .logo .underscore { animation: blink 0.8s step-end infinite; }
+        .main-content { flex: 1; padding: 28px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
+        .bio-section {
+            margin-bottom: 32px; border-left: 3px solid var(--green-dark);
+            padding-left: 20px; transition: all 0.3s;
+            background: rgba(0,10,0,0.2); box-shadow: 0 0 15px rgba(0,255,65,0.05);
+            border-radius: 0 4px 4px 0;
+        }
+        .bio-section:hover {
+            border-left-color: var(--green-neon);
+            box-shadow: 0 0 25px rgba(0,255,65,0.15), inset 0 0 15px rgba(0,255,65,0.03);
+            background: rgba(0,20,0,0.3);
+        }
+        .bio-section h2 {
+            color: var(--green-neon); font-size: 17px; font-weight: bold;
+            letter-spacing: 2px; margin-bottom: 12px;
+            text-shadow: var(--shadow-glow-strong);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .bio-section h2::before {
+            content: '>'; color: var(--green-dim);
+            text-shadow: 0 0 6px var(--green-glow); font-size: 18px;
+        }
+        .bio-section p {
+            color: var(--text); font-size: 14px; font-weight: 600;
+            line-height: 1.8; letter-spacing: 0.5px;
+            text-shadow: 0 0 6px rgba(255,255,255,0.1);
+        }
+        .status-dot {
+            display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+            background: var(--green-neon);
+            box-shadow: 0 0 10px var(--green-glow), 0 0 22px var(--green-glow);
+            margin-right: 8px; animation: statusPulse 2s ease-in-out infinite;
+        }
+        @keyframes statusPulse {
+            0%,100% { box-shadow: 0 0 10px var(--green-glow), 0 0 22px var(--green-glow); }
+            50% { box-shadow: 0 0 18px #00ff66, 0 0 40px #00ff66, 0 0 60px #00ff44; }
+        }
+        .neon-quote {
+            font-size: 12px; font-weight: bold; color: var(--green-neon);
+            text-shadow: 0 0 8px var(--green-neon), 0 0 16px var(--green-neon);
+            margin-top: 16px; font-style: italic; letter-spacing: 0.8px; opacity: 0.95;
+        }
+        .buttons-block {
+            display: flex; gap: 16px; flex-wrap: wrap;
+            justify-content: flex-start; margin-top: 8px; margin-bottom: 40px;
+        }
+        .oval-btn {
+            display: inline-block; padding: 14px 32px; border-radius: 50px;
+            background: rgba(0, 20, 0, 0.6); border: 1.5px solid var(--green-dark);
+            color: var(--green-bright); font-family: inherit; font-size: 15px;
+            font-weight: bold; letter-spacing: 1.8px; text-decoration: none;
+            cursor: pointer; transition: all 0.25s ease;
+            text-shadow: 0 0 6px var(--green-glow);
+            box-shadow: 0 0 8px rgba(0, 255, 65, 0.2);
+            backdrop-filter: blur(4px); text-align: center; min-width: 160px;
+        }
+        .oval-btn:hover {
+            background: rgba(0, 40, 0, 0.8); border-color: var(--green-neon);
+            color: var(--green-neon); text-shadow: 0 0 12px var(--green-glow-strong);
+            box-shadow: 0 0 18px rgba(0, 255, 65, 0.4); transform: translateY(-1px);
+        }
+        #toast {
+            position: fixed; bottom: 30px; right: 30px;
+            background: rgba(0, 10, 0, 0.9); border: 1px solid var(--green-neon);
+            color: var(--green-neon); padding: 12px 20px; border-radius: 30px;
+            font-family: inherit; font-size: 13px; font-weight: bold;
+            letter-spacing: 1px; text-shadow: 0 0 6px var(--green-glow);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+            opacity: 0; transform: translateY(20px); pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease; z-index: 300;
+        }
+        #toast.show { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 600px) {
+            #splashTitle { font-size: 28px; letter-spacing: 2px; }
+            .console-header { font-size: 14px; }
+            .console-body { font-size: 12px; }
+            .main-header { padding: 12px 14px; }
+            .main-header .logo { font-size: 16px; }
+            .main-content { padding: 16px 12px; }
+            .bio-section { padding-left: 14px; }
+            .bio-section h2 { font-size: 15px; }
+            .bio-section p { font-size: 12px; }
+            #clickHint { font-size: 10px; bottom: 24px; }
+            .neon-quote { font-size: 10px; }
+            .buttons-block { gap: 12px; }
+            .oval-btn { padding: 10px 22px; font-size: 13px; min-width: 130px; }
+            #toast { right: 16px; bottom: 16px; font-size: 11px; padding: 10px 16px; }
+            .dot { font-size: 60px; }
+            #loadingDotsScreen { gap: 10px; }
+        }
     </style>
 </head>
 <body>
+    <div class="scanlines"></div>
+    <canvas id="matrixCanvas"></canvas>
+    <div id="splashTitle">
+        <span class="neon-green">paralixium</span> <span class="white-text">presents</span>
+    </div>
+    <div id="clickHint">[ НАЖМИ КУДА-НИБУДЬ ЧТОБЫ ПРОДОЛЖИТЬ ]</div>
 
-<div id="loaderScreen" class="loader-screen">
-    <div class="loader-container">
-        <div class="console-box">
-            <div class="console-header">⚡ PROJECT_X::SEQUENCE [v.3.3.7]</div>
-            <div id="consoleLines" class="console-lines"></div>
+    <!-- Console Screen -->
+    <div id="consoleScreen">
+        <div class="console-header">
+            <span class="neon-green">paralixium</span> <span class="white-text">presents</span>
         </div>
-        <div class="mask-box">
-            <div class="mask-title">◈ MASK OF ANONYMUS ◈</div>
-            <div class="ascii-art" id="dynamicMask">
-                <pre style="margin:0; font-family:inherit">
-        ▄███████████████████████████████████▄
-        █▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█
-        █▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓█
-        █▓▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▓█
-        █▓▒░▓█████████████████████████▓░▒▓█
-        █▓▒░▓█░░░░░░░░░░░░░░░░░░░░░░░█▓░▒▓█
-        █▓▒░▓█░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░█▓░▒▓█
-        █▓▒░▓█░▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░█▓░▒▓█
-        █▓▒░▓█░▓▒░███████████████░▒▒░█▓░▒▓█
-        █▓▒░▓█░▓▒░██▓▓▓▓▓▓▓▓▓▓██░▒▒░█▓░▒▓█
-        █▓▒░▓█░▓▒░░░░░░░░░░░░░░░░░▒▒░█▓░▒▓█
-        █▓▒░▓█████████████████████████▓░▒▓█
-        █▓▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▓█
-        █▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓█
-        █▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█
-        ▀███████████████████████████████████▀
-                </pre>
+        <div class="console-body" id="consoleBody"></div>
+    </div>
+
+    <!-- Экран с тремя точками (матрица на фоне) -->
+    <div id="loadingDotsScreen">
+        <span class="dot">.</span>
+        <span class="dot">.</span>
+        <span class="dot">.</span>
+    </div>
+
+    <!-- Main Bio Screen -->
+    <div id="mainScreen">
+        <header class="main-header">
+            <div class="logo">paralixium<span class="underscore">_</span></div>
+        </header>
+        <div class="main-content">
+            <section class="bio-section" id="info">
+                <h2>info</h2>
+                <p>
+                    <span class="status-dot"></span> STATUS: <span style="color:#00ff41; text-shadow: 0 0 8px #00ff41;">ACTIVE</span> &nbsp;|&nbsp;
+                    UPTIME: <span style="color:#00cccc; text-shadow: 0 0 8px #00cccc;">99.7%</span> &nbsp;|&nbsp;
+                    LOC: <span style="color:#aaaaaa;">[REDACTED]</span>
+                </p>
+                <p class="neon-quote">
+                    Жизнь коротка, искусство вечно, случайные обстоятельства скоропреходящи, опыт обманчив, суждения трудны.
+                </p>
+            </section>
+            <div class="buttons-block">
+                <a href="https://discord-sensor.com/members/1372205860452962418" target="_blank" class="oval-btn">Discord Sensor</a>
+                <a href="https://discord.gg/asterstore" target="_blank" class="oval-btn">Aster Store</a>
+                <button class="oval-btn" id="copyEmailBtn">Email</button>
             </div>
-            <div style="margin-top: 12px; color:#0f6">✧ ANONYMITY IS POWER ✧</div>
         </div>
     </div>
-</div>
+    <div id="toast">Ссылка скопирована</div>
 
-<div id="app" class="app"></div>
+    <script>
+        (function() {
+            const matrixCanvas = document.getElementById('matrixCanvas');
+            const ctx = matrixCanvas.getContext('2d');
+            const splashTitle = document.getElementById('splashTitle');
+            const clickHint = document.getElementById('clickHint');
+            const consoleScreen = document.getElementById('consoleScreen');
+            const consoleBody = document.getElementById('consoleBody');
+            const loadingDotsScreen = document.getElementById('loadingDotsScreen');
+            const mainScreen = document.getElementById('mainScreen');
+            const copyEmailBtn = document.getElementById('copyEmailBtn');
+            const toast = document.getElementById('toast');
 
-<script>
-    // ---------- ХРАНИЛИЩЕ И ГЛОБАЛЬНЫЕ ДАННЫЕ ----------
-    let users = [];             // { id, login, password, nick, avatarBase64 }
-    let nextId = 1;
-    let currentUser = null;
+            let matrixActive = true, consoleActive = false, mainActive = false, animationId, columns = [];
+            const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFabcdef<>{}[]|/\\!@#$%^&*()_+-=:;';
+            const charsArray = chars.split('');
+            const fontSize = 15;
+            let canvasWidth, canvasHeight, numColumns;
 
-    let globalMessages = [];    // { id, fromId, fromNick, text, time }
-    let privateMessages = {};   // "id1_id2" -> []
-    let friendships = {};       // userId -> [friendIds]
-    let pendingRequests = {};   // userId -> [{ fromId, fromNick }]
-
-    // Загрузка из localStorage
-    function loadAllData() {
-        const storedUsers = localStorage.getItem("px_users");
-        if(storedUsers) users = JSON.parse(storedUsers);
-        const storedNext = localStorage.getItem("px_nextId");
-        if(storedNext) nextId = parseInt(storedNext);
-        const storedGlobal = localStorage.getItem("px_global");
-        if(storedGlobal) globalMessages = JSON.parse(storedGlobal);
-        const storedPM = localStorage.getItem("px_private");
-        if(storedPM) privateMessages = JSON.parse(storedPM);
-        const storedFriends = localStorage.getItem("px_friends");
-        if(storedFriends) friendships = JSON.parse(storedFriends);
-        const storedRequests = localStorage.getItem("px_requests");
-        if(storedRequests) pendingRequests = JSON.parse(storedRequests);
-    }
-    function saveAll() {
-        localStorage.setItem("px_users", JSON.stringify(users));
-        localStorage.setItem("px_nextId", nextId);
-        localStorage.setItem("px_global", JSON.stringify(globalMessages));
-        localStorage.setItem("px_private", JSON.stringify(privateMessages));
-        localStorage.setItem("px_friends", JSON.stringify(friendships));
-        localStorage.setItem("px_requests", JSON.stringify(pendingRequests));
-    }
-
-    // Вспомогательные функции
-    function findUserById(id) { return users.find(u => u.id === id); }
-    function findUserByNick(nick) { return users.find(u => u.nick.toLowerCase() === nick.toLowerCase()); }
-
-    // ГАРАНТИРУЕМ НАЛИЧИЕ ХОТЯ БЫ ОДНОГО АНОНИМНОГО ПОЛЬЗОВАТЕЛЯ
-    function ensureGuestUser() {
-        if(users.length === 0) {
-            const guest = {
-                id: nextId++,
-                login: `guest_${Date.now()}`,
-                password: "guest",
-                nick: "Anonymous",
-                avatarBase64: null
-            };
-            users.push(guest);
-            friendships[guest.id] = [];
-            pendingRequests[guest.id] = [];
-            saveAll();
-            return guest;
-        }
-        return null;
-    }
-
-    // АВТОРИЗАЦИЯ / АВТОВХОД
-    function autoLoginOrShow() {
-        // сначала загружаем данные
-        loadAllData();
-        let savedId = localStorage.getItem("px_currentId");
-        if(savedId) {
-            currentUser = findUserById(parseInt(savedId));
-        }
-        if(!currentUser) {
-            // пытаемся залогиниться как гость, если нет пользователей
-            const newGuest = ensureGuestUser();
-            if(newGuest) {
-                currentUser = newGuest;
-                localStorage.setItem("px_currentId", currentUser.id);
-            } else if(users.length > 0) {
-                // берем первого попавшегося (для демо)
-                currentUser = users[0];
-                localStorage.setItem("px_currentId", currentUser.id);
-            } else {
-                // крайний случай - создаем прямо сейчас
-                const fresh = {
-                    id: nextId++,
-                    login: `anon_${Date.now()}`,
-                    password: "x",
-                    nick: "Neo",
-                    avatarBase64: null
-                };
-                users.push(fresh);
-                friendships[fresh.id] = [];
-                pendingRequests[fresh.id] = [];
-                saveAll();
-                currentUser = fresh;
-                localStorage.setItem("px_currentId", currentUser.id);
-            }
-        }
-        // убедимся, что структуры для currentUser существуют
-        if(!friendships[currentUser.id]) friendships[currentUser.id] = [];
-        if(!pendingRequests[currentUser.id]) pendingRequests[currentUser.id] = [];
-        saveAll();
-    }
-
-    // ---------- ОСНОВНОЙ ИНТЕРФЕЙС ----------
-    function renderApp() {
-        const appDiv = document.getElementById('app');
-        if(!appDiv) return;
-        appDiv.innerHTML = `
-            <div class="profile-card" id="profileClick">
-                <div class="avatar" id="profileAvatar">
-                    ${currentUser.avatarBase64 ? `<img src="${currentUser.avatarBase64}" alt="avatar">` : `<span>👤</span>`}
-                </div>
-                <div class="user-details">
-                    <div class="user-nick">${escapeHtml(currentUser.nick)}</div>
-                    <div class="user-id">ID: ${currentUser.id}</div>
-                </div>
-                <button class="logout-btn" id="logoutBtn">Выход</button>
-            </div>
-            <div class="tabs">
-                <div class="tab active" data-tab="global">🌍 ГЛОБАЛЬНЫЙ ЧАТ</div>
-                <div class="tab" data-tab="private">💬 ЛИЧНЫЕ ЧАТЫ</div>
-            </div>
-            <div id="globalPanel" class="panel">
-                <div class="messages-area" id="globalMessagesArea"></div>
-                <div class="input-group">
-                    <input type="text" id="globalMsgInput" placeholder="Анонимное сообщение...">
-                    <button id="sendGlobalBtn">🚀 Отправить</button>
-                </div>
-            </div>
-            <div id="privatePanel" class="panel" style="display:none;">
-                <div class="private-layout">
-                    <div class="friends-panel">
-                        <h3 style="color:#0f6">🤝 ДРУЗЬЯ</h3>
-                        <div id="friendsList"></div>
-                        <div class="pending-area" id="pendingRequestsArea"></div>
-                    </div>
-                    <div class="search-panel">
-                        <h3 style="color:#0f6">🔍 ПОИСК ПОЛЬЗОВАТЕЛЕЙ</h3>
-                        <div class="input-group" style="margin-bottom:10px">
-                            <input type="text" id="searchNickInput" placeholder="Никнейм...">
-                            <button id="searchUserBtn">Найти</button>
-                        </div>
-                        <div id="searchResults" class="search-result"></div>
-                    </div>
-                </div>
-                <div class="pm-chat" id="pmChatBlock">
-                    <h3 id="pmTitle" style="color:#0f6">💬 Личный диалог</h3>
-                    <div class="messages-area" id="pmMessagesArea" style="height:30vh"></div>
-                    <div class="input-group">
-                        <input type="text" id="pmInput" placeholder="Сообщение..." disabled>
-                        <button id="sendPmBtn" disabled>Отправить</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        // события
-        document.getElementById('profileClick').addEventListener('click', (e) => {
-            if(e.target.classList.contains('logout-btn')) return;
-            showEditProfileModal();
-        });
-        document.getElementById('logoutBtn').onclick = () => {
-            localStorage.removeItem("px_currentId");
-            currentUser = null;
-            // перезагружаем страницу, чтобы показать лоадер и заново войти
-            location.reload();
-        };
-        // табы
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.onclick = () => {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                const type = tab.dataset.tab;
-                document.getElementById('globalPanel').style.display = type === 'global' ? 'block' : 'none';
-                document.getElementById('privatePanel').style.display = type === 'private' ? 'block' : 'none';
-                if(type === 'private') refreshPrivateUI();
-            };
-        });
-        // Глобальный чат
-        document.getElementById('sendGlobalBtn').onclick = () => sendGlobalMsg();
-        document.getElementById('globalMsgInput').addEventListener('keypress', e => { if(e.key === 'Enter') sendGlobalMsg(); });
-        // Поиск
-        document.getElementById('searchUserBtn').onclick = () => searchUsers();
-        // Отправка личного
-        document.getElementById('sendPmBtn').onclick = () => sendPrivateMsg();
-        document.getElementById('pmInput').addEventListener('keypress', e => { if(e.key === 'Enter') sendPrivateMsg(); });
-        renderGlobalMessages();
-        refreshPrivateUI();
-    }
-
-    function sendGlobalMsg() {
-        const input = document.getElementById('globalMsgInput');
-        const text = input.value.trim();
-        if(!text) return;
-        const msg = {
-            id: Date.now(),
-            fromId: currentUser.id,
-            fromNick: currentUser.nick,
-            text,
-            time: new Date().toLocaleTimeString()
-        };
-        globalMessages.push(msg);
-        saveAll();
-        input.value = '';
-        renderGlobalMessages();
-    }
-
-    function renderGlobalMessages() {
-        const container = document.getElementById('globalMessagesArea');
-        if(!container) return;
-        container.innerHTML = '';
-        [...globalMessages].reverse().forEach(msg => {
-            const div = document.createElement('div');
-            div.className = `message ${msg.fromId === currentUser.id ? 'own' : ''}`;
-            div.innerHTML = `<div class="msg-meta"><span>${escapeHtml(msg.fromNick)}</span><span>${msg.time}</span></div><div>${escapeHtml(msg.text)}</div>`;
-            container.prepend(div);
-        });
-    }
-
-    // Личные чаты
-    function refreshPrivateUI() {
-        renderFriendsList();
-        renderPendingRequests();
-        if(currentPrivateChatWith) openPrivateChat(currentPrivateChatWith);
-        else {
-            document.getElementById('pmTitle').innerHTML = '💬 Выберите друга';
-            document.getElementById('pmInput').disabled = true;
-            document.getElementById('sendPmBtn').disabled = true;
-        }
-    }
-
-    let currentPrivateChatWith = null;
-
-    function renderFriendsList() {
-        const container = document.getElementById('friendsList');
-        if(!container) return;
-        const friendsIds = friendships[currentUser.id] || [];
-        if(friendsIds.length === 0) { container.innerHTML = '<div style="color:#aaa">Нет друзей. Добавьте через поиск.</div>'; return; }
-        container.innerHTML = '';
-        friendsIds.forEach(fid => {
-            const friend = findUserById(fid);
-            if(friend) {
-                const div = document.createElement('div');
-                div.className = 'friend-item';
-                div.innerHTML = `<div class="avatar" style="width:36px;height:36px;font-size:24px">${friend.avatarBase64 ? `<img src="${friend.avatarBase64}" style="width:100%">` : '👤'}</div><span>${escapeHtml(friend.nick)}</span>`;
-                div.onclick = () => openPrivateChat(friend.id);
-                container.appendChild(div);
-            }
-        });
-    }
-
-    function openPrivateChat(friendId) {
-        currentPrivateChatWith = friendId;
-        const friend = findUserById(friendId);
-        document.getElementById('pmTitle').innerHTML = `💬 Чат с ${friend?.nick}`;
-        document.getElementById('pmInput').disabled = false;
-        document.getElementById('sendPmBtn').disabled = false;
-        renderPrivateMessages(friendId);
-    }
-
-    function renderPrivateMessages(friendId) {
-        const key = [currentUser.id, friendId].sort().join('_');
-        const msgs = privateMessages[key] || [];
-        const container = document.getElementById('pmMessagesArea');
-        if(!container) return;
-        container.innerHTML = '';
-        msgs.forEach(msg => {
-            const div = document.createElement('div');
-            div.className = `message ${msg.fromId === currentUser.id ? 'own' : ''}`;
-            const sender = msg.fromId === currentUser.id ? 'Вы' : (findUserById(msg.fromId)?.nick || 'Друг');
-            div.innerHTML = `<div class="msg-meta"><span>${escapeHtml(sender)}</span><span>${msg.time}</span></div><div>${escapeHtml(msg.text)}</div>`;
-            container.appendChild(div);
-        });
-        container.scrollTop = container.scrollHeight;
-    }
-
-    function sendPrivateMsg() {
-        if(!currentPrivateChatWith) return;
-        const input = document.getElementById('pmInput');
-        const text = input.value.trim();
-        if(!text) return;
-        const key = [currentUser.id, currentPrivateChatWith].sort().join('_');
-        if(!privateMessages[key]) privateMessages[key] = [];
-        privateMessages[key].push({
-            fromId: currentUser.id,
-            text,
-            time: new Date().toLocaleTimeString()
-        });
-        saveAll();
-        input.value = '';
-        renderPrivateMessages(currentPrivateChatWith);
-    }
-
-    function searchUsers() {
-        const query = document.getElementById('searchNickInput').value.trim().toLowerCase();
-        if(!query) return;
-        const results = users.filter(u => u.id !== currentUser.id && u.nick.toLowerCase().includes(query));
-        const container = document.getElementById('searchResults');
-        container.innerHTML = '';
-        results.forEach(u => {
-            const btn = document.createElement('button');
-            btn.textContent = `➕ ${u.nick}`;
-            btn.onclick = () => sendFriendRequest(u.id);
-            container.appendChild(btn);
-        });
-    }
-
-    function sendFriendRequest(toId) {
-        if(friendships[currentUser.id].includes(toId)) { alert("Уже друг"); return; }
-        if(pendingRequests[toId]?.some(req => req.fromId === currentUser.id)) { alert("Заявка уже отправлена"); return; }
-        const target = findUserById(toId);
-        if(!target) return;
-        if(!pendingRequests[toId]) pendingRequests[toId] = [];
-        pendingRequests[toId].push({ fromId: currentUser.id, fromNick: currentUser.nick });
-        saveAll();
-        alert(`Заявка отправлена ${target.nick}`);
-        renderPendingRequests();
-    }
-
-    function renderPendingRequests() {
-        const container = document.getElementById('pendingRequestsArea');
-        if(!container) return;
-        const requests = pendingRequests[currentUser.id] || [];
-        if(requests.length === 0) { container.innerHTML = '<div>📭 Нет входящих заявок</div>'; return; }
-        let html = '<strong>📨 Входящие заявки:</strong><div>';
-        requests.forEach(req => {
-            html += `<div>👤 ${escapeHtml(req.fromNick)} 
-                <button data-accept="${req.fromId}" style="padding:2px 8px; margin-left:8px;">✅ Принять</button>
-                <button data-reject="${req.fromId}" style="padding:2px 8px;">❌</button></div>`;
-        });
-        html += '</div>';
-        container.innerHTML = html;
-        document.querySelectorAll('[data-accept]').forEach(btn => {
-            btn.onclick = (e) => { const fid = parseInt(btn.dataset.accept); acceptFriend(fid); };
-        });
-        document.querySelectorAll('[data-reject]').forEach(btn => {
-            btn.onclick = (e) => { const fid = parseInt(btn.dataset.reject); rejectFriend(fid); };
-        });
-    }
-
-    function acceptFriend(fromId) {
-        if(!friendships[currentUser.id].includes(fromId)) friendships[currentUser.id].push(fromId);
-        if(!friendships[fromId]) friendships[fromId] = [];
-        if(!friendships[fromId].includes(currentUser.id)) friendships[fromId].push(currentUser.id);
-        pendingRequests[currentUser.id] = pendingRequests[currentUser.id].filter(r => r.fromId !== fromId);
-        saveAll();
-        refreshPrivateUI();
-    }
-    function rejectFriend(fromId) {
-        pendingRequests[currentUser.id] = pendingRequests[currentUser.id].filter(r => r.fromId !== fromId);
-        saveAll();
-        renderPendingRequests();
-    }
-
-    // Редактирование профиля (клик по аватарке/имени)
-    function showEditProfileModal() {
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.innerHTML = `
-            <div class="modal-card">
-                <h2 style="color:#0f6">✎ РЕДАКТОР ПРОФИЛЯ</h2>
-                <div class="avatar-preview" id="avatarPreview">
-                    ${currentUser.avatarBase64 ? `<img src="${currentUser.avatarBase64}" style="width:100%;height:100%;object-fit:cover">` : '<span style="font-size:48px">👤</span>'}
-                </div>
-                <input type="text" id="editNick" placeholder="Новый никнейм" value="${escapeHtml(currentUser.nick)}">
-                <input type="file" id="avatarUpload" accept="image/*">
-                <button id="saveProfileBtn">Сохранить изменения</button>
-                <button id="closeModalBtn">Отмена</button>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        const fileInput = document.getElementById('avatarUpload');
-        const preview = document.getElementById('avatarPreview');
-        fileInput.onchange = (e) => {
-            const file = e.target.files[0];
-            if(file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    preview.innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover">`;
-                    currentUser.avatarBase64 = ev.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        };
-        document.getElementById('saveProfileBtn').onclick = () => {
-            const newNick = document.getElementById('editNick').value.trim();
-            if(newNick && newNick !== currentUser.nick) {
-                if(findUserByNick(newNick)) alert("Никнейм уже занят");
-                else {
-                    currentUser.nick = newNick;
-                    const idx = users.findIndex(u => u.id === currentUser.id);
-                    if(idx !== -1) users[idx].nick = newNick;
+            function resizeCanvas() {
+                canvasWidth = window.innerWidth;
+                canvasHeight = window.innerHeight;
+                matrixCanvas.width = canvasWidth;
+                matrixCanvas.height = canvasHeight;
+                numColumns = Math.floor(canvasWidth / fontSize) + 1;
+                columns = [];
+                for (let i = 0; i < numColumns; i++) {
+                    columns.push({
+                        y: Math.random() * canvasHeight / fontSize * -1,
+                        speed: 0.6 + Math.random() * 2.8,
+                        charIndex: Math.floor(Math.random() * charsArray.length),
+                        updateRate: Math.floor(2 + Math.random() * 8),
+                        updateCounter: Math.floor(Math.random() * 8),
+                        brightness: 0.4 + Math.random() * 0.6,
+                        wingFactor: 0,
+                    });
                 }
+                const center = numColumns / 2;
+                columns.forEach((col, i) => {
+                    const dist = Math.abs(i - center) / center;
+                    col.wingFactor = 1 - dist * 0.7;
+                    col.speed *= (0.7 + col.wingFactor * 0.6);
+                    col.brightness = Math.min(1, col.brightness + col.wingFactor * 0.25);
+                });
             }
-            if(currentUser.avatarBase64) {
-                const idx = users.findIndex(u => u.id === currentUser.id);
-                if(idx !== -1) users[idx].avatarBase64 = currentUser.avatarBase64;
+
+            function drawMatrix() {
+                if (!matrixActive) return;
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.055)';
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                ctx.font = fontSize + 'px "Courier New", monospace';
+                columns.forEach((col, i) => {
+                    col.updateCounter++;
+                    if (col.updateCounter >= col.updateRate) {
+                        col.updateCounter = 0;
+                        col.charIndex = Math.floor(Math.random() * charsArray.length);
+                    }
+                    const char = charsArray[col.charIndex];
+                    const x = i * fontSize;
+                    const y = col.y * fontSize;
+                    ctx.fillStyle = `rgba(200,255,220,${0.9 + col.brightness * 0.1})`;
+                    ctx.shadowColor = '#00ff41';
+                    ctx.shadowBlur = 8 * col.brightness;
+                    ctx.fillText(char, x, y);
+                    const trailLength = 6 + Math.floor(col.brightness * 8);
+                    for (let t = 1; t <= trailLength; t++) {
+                        const trailY = y - t * fontSize;
+                        if (trailY < 0) continue;
+                        const alpha = (1 - t / trailLength) * 0.7 * col.brightness;
+                        ctx.fillStyle = `rgba(0,255,65,${alpha})`;
+                        ctx.shadowBlur = 3 * (1 - t / trailLength) * col.brightness;
+                        ctx.fillText(charsArray[Math.floor(Math.random() * charsArray.length)], x, trailY);
+                    }
+                    col.y += col.speed;
+                    if (col.y * fontSize > canvasHeight + fontSize * trailLength) {
+                        col.y = -Math.random() * 30;
+                        col.speed = 0.5 + Math.random() * 3.0;
+                    }
+                });
+                ctx.shadowBlur = 0;
             }
-            saveAll();
-            modal.remove();
-            renderApp(); // перерисуем интерфейс
-        };
-        document.getElementById('closeModalBtn').onclick = () => modal.remove();
-    }
 
-    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, (m) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
-
-    // ---------- ЗАПУСК С КОНСОЛЬНОЙ ЗАГРУЗКОЙ ----------
-    function startApplication() {
-        autoLoginOrShow();      // гарантируем currentUser
-        renderApp();            // отрисовываем интерфейс
-        document.getElementById('app').style.display = 'block';
-    }
-
-    const bootSteps = [
-        "> Инициализация Project X ядра...",
-        "> Загрузка крипто-модулей: E2EE, OTR...",
-        "> Маска Анонимуса активирована",
-        "> Синхронизация с децентрализованной сетью...",
-        "> Доступ разрешён. Добро пожаловать."
-    ];
-    let step = 0;
-    const consoleDivLoader = document.getElementById('consoleLines');
-    function typeLine(text, callback) {
-        const lineDiv = document.createElement('div');
-        lineDiv.className = 'line';
-        consoleDivLoader.appendChild(lineDiv);
-        let i = 0;
-        function write() {
-            if(i < text.length) {
-                lineDiv.textContent += text[i];
-                i++;
-                setTimeout(write, 40);
-            } else {
-                const cursor = document.createElement('span');
-                cursor.className = 'cursor-blink';
-                lineDiv.appendChild(cursor);
-                setTimeout(() => { if(cursor.remove) cursor.remove(); if(callback) callback(); }, 180);
+            function matrixLoop() {
+                if (!matrixActive) return;
+                drawMatrix();
+                animationId = requestAnimationFrame(matrixLoop);
             }
-        }
-        write();
-    }
-    function nextBoot() {
-        if(step >= bootSteps.length) {
-            setTimeout(() => {
-                const loader = document.getElementById('loaderScreen');
-                loader.style.opacity = '0';
+
+            function skipMatrix() {
+                if (!matrixActive) return;
+                matrixActive = false;
+                cancelAnimationFrame(animationId);
+                matrixCanvas.classList.add('fading');
+                splashTitle.style.opacity = '0';
+                clickHint.style.opacity = '0';
+                clickHint.style.pointerEvents = 'none';
                 setTimeout(() => {
-                    loader.style.display = 'none';
-                    startApplication();
-                }, 600);
-            }, 400);
-            return;
-        }
-        typeLine(bootSteps[step], () => { step++; nextBoot(); });
-    }
-    // Предзагрузка данных
-    loadAllData();
-    nextBoot();
-</script>
+                    matrixCanvas.classList.add('hidden');
+                    splashTitle.style.display = 'none';
+                    clickHint.style.display = 'none';
+                    startConsole();
+                }, 650);
+            }
+
+            matrixCanvas.addEventListener('click', skipMatrix);
+            splashTitle.addEventListener('click', skipMatrix);
+            clickHint.addEventListener('click', skipMatrix);
+            document.addEventListener('keydown', function(e) {
+                if (matrixActive && (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape')) {
+                    e.preventDefault();
+                    skipMatrix();
+                }
+            });
+
+            let autoSkipTimer = setTimeout(() => { if (matrixActive) skipMatrix(); }, 14000);
+            document.addEventListener('mousemove', () => {
+                if (matrixActive) {
+                    clearTimeout(autoSkipTimer);
+                    autoSkipTimer = setTimeout(() => { if (matrixActive) skipMatrix(); }, 14000);
+                }
+            });
+
+            const consoleLines = [
+                { text: '', delay: 60 },
+                { text: '[BOOT] Инициализация ядра системы...', delay: 300, cls: 'line-green' },
+                { text: '[BOOT] Проверка контрольных сумм... OK', delay: 250, cls: 'line-dim' },
+                { text: '[BOOT] Загрузка модулей безопасности...', delay: 200, cls: 'line-green' },
+                { text: '[BOOT] Модуль шифрования: AES-256-GCM... ACTIVATED', delay: 300, cls: 'line-cyan' },
+                { text: '[BOOT] Модуль обфускации трафика... ACTIVATED', delay: 250, cls: 'line-cyan' },
+                { text: '[BOOT] Установка защищённого соединения...', delay: 200, cls: 'line-green' },
+                { text: '[NET] Пинг шлюза: 0.3ms', delay: 180, cls: 'line-dim' },
+                { text: '[NET] Маршрутизация через TOR... OK', delay: 250, cls: 'line-amber' },
+                { text: '[NET] VPN-туннель установлен', delay: 200, cls: 'line-cyan' },
+                { text: '[SYS] Проверка окружения...', delay: 200, cls: 'line-green' },
+                { text: '[SYS] ОС: Linux 6.x | Arch: x86_64 | Shell: zsh', delay: 200, cls: 'line-dim' },
+                { text: '[SYS] Доступная память: 15.6 GB / 16.0 GB', delay: 150, cls: 'line-dim' },
+                { text: '[SYS] Загрузка CPU: 3%', delay: 150, cls: 'line-dim' },
+                { text: '', delay: 100 },
+                { text: '[LOAD] Загрузка пользовательских модулей...', delay: 300, cls: 'line-green' },
+                { text: '[LOAD] [#######···········] 34%', delay: 350, cls: 'line-amber' },
+                { text: '[LOAD] [##############····] 72%', delay: 400, cls: 'line-amber' },
+                { text: '[LOAD] [##################] 96%', delay: 350, cls: 'line-amber' },
+                { text: '[LOAD] [###################] 100% - OK', delay: 300, cls: 'line-green' },
+                { text: '', delay: 100 },
+                { text: '[AUTH] Проверка подписи окружения...', delay: 300, cls: 'line-green' },
+                { text: '[AUTH] Хеш совпадает. Доступ подтверждён.', delay: 250, cls: 'line-cyan' },
+                { text: '', delay: 150 },
+                { text: '>>> ACCESS GRANTED <<<', delay: 400, cls: 'line-green' },
+                { text: '', delay: 200 },
+                { text: 'Загрузка интерфейса...', delay: 300, cls: 'line-dim' },
+            ];
+
+            function startConsole() {
+                consoleActive = true;
+                consoleScreen.classList.add('active');
+                consoleBody.innerHTML = '';
+                mainScreen.classList.remove('active');
+                let totalDelay = 0;
+                consoleLines.forEach((lineObj, idx) => {
+                    totalDelay += lineObj.delay + 60;
+                    setTimeout(() => {
+                        if (!consoleActive) return;
+                        const div = document.createElement('div');
+                        div.className = 'line ' + (lineObj.cls || '');
+                        div.textContent = lineObj.text || ' ';
+                        consoleBody.appendChild(div);
+                        requestAnimationFrame(() => div.classList.add('visible'));
+                        consoleBody.scrollTop = consoleBody.scrollHeight;
+                        if (idx === consoleLines.length - 1) {
+                            setTimeout(() => showLoadingDots(), 900);
+                        }
+                    }, totalDelay);
+                });
+                setTimeout(() => {
+                    if (!consoleActive) return;
+                    const cursor = document.createElement('div');
+                    cursor.className = 'line';
+                    cursor.innerHTML = '<span class="cursor-blink"></span>';
+                    cursor.id = 'cursorLine';
+                    consoleBody.appendChild(cursor);
+                }, totalDelay - 200);
+            }
+
+            function showLoadingDots() {
+                const cursor = document.getElementById('cursorLine');
+                if (cursor) cursor.remove();
+                consoleScreen.classList.add('fadingOut');
+                setTimeout(() => {
+                    consoleActive = false;
+                    consoleScreen.classList.remove('active', 'fadingOut');
+                    consoleBody.innerHTML = '';
+                    
+                    // Показываем матрицу на фоне точек
+                    matrixCanvas.classList.remove('hidden', 'fading');
+                    matrixCanvas.style.opacity = '1';
+                    matrixCanvas.style.zIndex = '84'; // позади loadingDotsScreen (85)
+                    matrixActive = true;
+                    matrixLoop();
+                    
+                    loadingDotsScreen.classList.add('active');
+                    
+                    // Через 6 секунд переход к главному экрану
+                    setTimeout(() => {
+                        // Останавливаем матрицу
+                        matrixActive = false;
+                        cancelAnimationFrame(animationId);
+                        matrixCanvas.style.opacity = '0';
+                        matrixCanvas.style.transition = 'opacity 0.6s ease-out';
+                        
+                        loadingDotsScreen.classList.add('fading');
+                        setTimeout(() => {
+                            matrixCanvas.classList.add('hidden');
+                            matrixCanvas.style.zIndex = '100';
+                            loadingDotsScreen.classList.remove('active', 'fading');
+                            showMainScreen();
+                        }, 600);
+                    }, 6000);
+                }, 550);
+            }
+
+            function showMainScreen() {
+                mainActive = true;
+                mainScreen.classList.add('active', 'fadingIn');
+                document.body.style.overflow = 'auto';
+                document.body.style.cursor = 'default';
+                setTimeout(() => mainScreen.classList.remove('fadingIn'), 750);
+            }
+
+            copyEmailBtn.addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText('paralixium@info.com');
+                } catch (err) {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = 'paralixium@info.com';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                }
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+
+            resizeCanvas();
+            matrixLoop();
+            window.addEventListener('resize', () => { if (matrixActive) resizeCanvas(); });
+
+            let keyBuffer = '';
+            document.addEventListener('keydown', (e) => {
+                if (!mainActive) return;
+                keyBuffer += e.key.toLowerCase();
+                if (keyBuffer.length > 20) keyBuffer = keyBuffer.slice(-20);
+                if (keyBuffer.includes('matrix')) {
+                    keyBuffer = '';
+                    matrixCanvas.classList.remove('hidden', 'fading');
+                    matrixCanvas.style.opacity = '0.25';
+                    matrixCanvas.style.zIndex = '85';
+                    matrixActive = true;
+                    matrixLoop();
+                    setTimeout(() => {
+                        matrixActive = false;
+                        cancelAnimationFrame(animationId);
+                        matrixCanvas.style.opacity = '0';
+                        matrixCanvas.style.transition = 'opacity 1s ease-out';
+                        setTimeout(() => {
+                            matrixCanvas.classList.add('hidden');
+                            matrixCanvas.style.zIndex = '100';
+                        }, 1000);
+                    }, 2200);
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
