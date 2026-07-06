@@ -6,22 +6,22 @@
     <title>paralixium | bio</title>
     <style>
         :root {
-            --bg: #050505;
-            --terminal-bg: #080808;
-            --green-neon: #39ff14;
-            --green-bright: #00ff41;
-            --green-dim: #00aa2e;
-            --green-dark: #005c1a;
-            --green-glow: rgba(0, 255, 65, 0.7);
-            --green-glow-strong: rgba(57, 255, 20, 0.9);
-            --text: #e0e0e0;
-            --cyan: #00cccc;
-            --shadow-glow: 0 0 8px rgba(0, 255, 65, 0.8), 0 0 18px rgba(0, 255, 65, 0.5);
-            --shadow-glow-strong: 0 0 12px rgba(57, 255, 20, 0.9), 0 0 30px rgba(57, 255, 20, 0.7);
+            --bg: #020202;
+            --terminal-bg: #050505;
+            --white-neon: #e0e0e0;
+            --white-bright: #ffffff;
+            --white-dim: #888888;
+            --white-dark: #444444;
+            --white-glow: rgba(255, 255, 255, 0.7);
+            --white-glow-strong: rgba(255, 255, 255, 0.9);
+            --text: #c0c0c0;
+            --text-dim: #777777;
+            --shadow-glow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 18px rgba(255, 255, 255, 0.5);
+            --shadow-glow-strong: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 30px rgba(255, 255, 255, 0.7);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: var(--bg);
+            background: #000;
             font-family: 'Courier New', 'Lucida Console', 'Consolas', monospace;
             overflow: hidden;
             width: 100vw; height: 100vh;
@@ -35,8 +35,7 @@
             z-index: 100; background: #000;
             transition: opacity 0.6s ease-out;
         }
-        #matrixCanvas.fading { opacity: 0; pointer-events: none; }
-        #matrixCanvas.hidden { display: none; }
+        #matrixCanvas.transparent { opacity: 0; pointer-events: none; }
         #splashTitle {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             z-index: 102;
@@ -46,23 +45,23 @@
             text-align: center; transition: opacity 0.5s ease-out;
             line-height: 1.2; cursor: pointer;
         }
-        #splashTitle .neon-green {
-            color: var(--green-neon);
-            text-shadow: 0 0 15px var(--green-neon), 0 0 35px var(--green-neon), 0 0 70px #00ff66;
-            animation: titleGlow 2.5s ease-in-out infinite;
+        #splashTitle .neon-white {
+            color: var(--white-neon);
+            text-shadow: 0 0 15px var(--white-neon), 0 0 35px var(--white-neon), 0 0 70px #ffffff;
+            animation: titleGlowWhite 2.5s ease-in-out infinite;
         }
         #splashTitle .white-text {
-            color: #ffffff;
-            text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 25px rgba(255,255,255,0.5), 0 0 40px rgba(255,255,255,0.3);
+            color: #aaaaaa;
+            text-shadow: 0 0 10px rgba(170,170,170,0.8), 0 0 25px rgba(170,170,170,0.5), 0 0 40px rgba(170,170,170,0.3);
             margin-left: 12px;
         }
-        @keyframes titleGlow {
-            0%,100% { text-shadow: 0 0 15px var(--green-neon), 0 0 35px var(--green-neon), 0 0 70px #00ff66; }
-            50% { text-shadow: 0 0 25px #00ff66, 0 0 55px #00ff44, 0 0 90px #00ff44; }
+        @keyframes titleGlowWhite {
+            0%,100% { text-shadow: 0 0 15px var(--white-neon), 0 0 35px var(--white-neon), 0 0 70px #ffffff; }
+            50% { text-shadow: 0 0 25px #ffffff, 0 0 55px #dddddd, 0 0 90px #cccccc; }
         }
         #clickHint {
             position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
-            z-index: 101; color: var(--green-neon); font-size: 13px;
+            z-index: 101; color: var(--white-neon); font-size: 13px;
             font-weight: bold; letter-spacing: 4px;
             text-shadow: var(--shadow-glow-strong);
             animation: hintPulse 2s ease-in-out infinite;
@@ -77,47 +76,47 @@
             z-index: 90; background: var(--terminal-bg);
             display: none; flex-direction: column;
             padding: 20px 24px; overflow: hidden;
-            box-shadow: inset 0 0 60px rgba(0,255,65,0.03);
+            box-shadow: inset 0 0 60px rgba(255,255,255,0.03);
         }
         #consoleScreen.active { display: flex; }
         #consoleScreen.fadingOut { opacity: 0; transition: opacity 0.5s ease-out; pointer-events: none; }
         .console-header {
             text-align: center; font-size: 18px; font-weight: bold;
             letter-spacing: 3px; padding: 8px 0 14px;
-            border-bottom: 1px solid var(--green-dark);
-            margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,255,65,0.1);
+            border-bottom: 1px solid var(--white-dark);
+            margin-bottom: 10px; box-shadow: 0 2px 8px rgba(255,255,255,0.1);
             word-break: break-word;
         }
-        .console-header .neon-green {
-            color: var(--green-neon); text-shadow: var(--shadow-glow-strong);
-            animation: headerGlowGreen 3s ease-in-out infinite;
+        .console-header .neon-white {
+            color: var(--white-neon); text-shadow: var(--shadow-glow-strong);
+            animation: headerGlowWhite 3s ease-in-out infinite;
         }
         .console-header .white-text {
-            color: #ffffff; text-shadow: 0 0 5px rgba(255,255,255,0.5), 0 0 12px rgba(255,255,255,0.3);
+            color: #aaaaaa; text-shadow: 0 0 5px rgba(170,170,170,0.5), 0 0 12px rgba(170,170,170,0.3);
         }
-        @keyframes headerGlowGreen {
-            0%,100% { text-shadow: 0 0 10px var(--green-neon), 0 0 25px var(--green-neon); }
-            50% { text-shadow: 0 0 20px #00ff66, 0 0 45px #00ff44, 0 0 70px #00ff44; }
+        @keyframes headerGlowWhite {
+            0%,100% { text-shadow: 0 0 10px var(--white-neon), 0 0 25px var(--white-neon); }
+            50% { text-shadow: 0 0 20px #ffffff, 0 0 45px #dddddd, 0 0 70px #cccccc; }
         }
         .console-body {
-            flex: 1; color: var(--green-dim); font-size: 14px;
+            flex: 1; color: var(--white-dim); font-size: 14px;
             font-weight: bold; line-height: 1.7; overflow-y: auto;
             padding: 6px 4px; letter-spacing: 0.6px;
             white-space: pre-wrap; word-break: break-all;
-            text-shadow: 0 0 3px rgba(0,255,65,0.3);
+            text-shadow: 0 0 3px rgba(255,255,255,0.3);
         }
-        .console-body .line { opacity: 0; animation: lineAppear 0.15s forwards; font-weight: bold; text-shadow: 0 0 6px rgba(0,255,65,0.4); }
+        .console-body .line { opacity: 0; animation: lineAppear 0.15s forwards; font-weight: bold; text-shadow: 0 0 6px rgba(255,255,255,0.4); }
         .console-body .line.visible { opacity: 1; }
         @keyframes lineAppear { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
-        .console-body .line-green { color: var(--green-bright); text-shadow: 0 0 10px var(--green-glow); }
-        .console-body .line-amber { color: #ffaa00; text-shadow: 0 0 8px rgba(255,170,0,0.7); }
-        .console-body .line-cyan { color: var(--cyan); text-shadow: 0 0 8px rgba(0,204,204,0.7); }
-        .console-body .line-dim { color: #aaaaaa; text-shadow: 0 0 4px rgba(255,255,255,0.3); }
+        .console-body .line-green { color: #cccccc; text-shadow: 0 0 10px var(--white-glow); }
+        .console-body .line-amber { color: #aaaaaa; text-shadow: 0 0 8px rgba(170,170,170,0.7); }
+        .console-body .line-cyan { color: #bbbbbb; text-shadow: 0 0 8px rgba(170,170,170,0.7); }
+        .console-body .line-dim { color: #666666; text-shadow: 0 0 4px rgba(255,255,255,0.3); }
         .console-body .cursor-blink {
             display: inline-block; width: 10px; height: 16px;
-            background: var(--green-neon); animation: blink 0.7s step-end infinite;
+            background: var(--white-neon); animation: blink 0.7s step-end infinite;
             vertical-align: middle; margin-left: 3px;
-            box-shadow: 0 0 10px var(--green-glow), 0 0 20px var(--green-glow);
+            box-shadow: 0 0 10px var(--white-glow), 0 0 20px var(--white-glow);
         }
         @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
         .scanlines {
@@ -127,82 +126,50 @@
             opacity: 0.6;
         }
 
-        /* Экран с тремя точками */
-        #loadingDotsScreen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 85;
-            background: rgba(0,0,0,0.6); /* полупрозрачный фон, чтобы матрица была видна */
-            backdrop-filter: blur(2px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            gap: 15px; /* точки ближе друг к другу */
-            opacity: 1;
-            transition: opacity 0.6s ease-out;
-        }
-        #loadingDotsScreen.active { display: flex; }
-        #loadingDotsScreen.fading { opacity: 0; pointer-events: none; }
-        .dot {
-            font-size: 100px;
-            color: #ffffff;
-            text-shadow: 0 0 25px rgba(255,255,255,0.9), 0 0 50px rgba(255,255,255,0.6);
-            opacity: 0;
-            animation: dotSequence 2s ease-in-out infinite;
-        }
-        .dot:nth-child(1) { animation-delay: 0s; }
-        .dot:nth-child(2) { animation-delay: 0.6s; }
-        .dot:nth-child(3) { animation-delay: 1.2s; }
-        @keyframes dotSequence {
-            0%, 15% { opacity: 0; }
-            40%, 60% { opacity: 1; }
-            85%, 100% { opacity: 0; }
-        }
-
         #mainScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 80; background: var(--bg);
             display: none; flex-direction: column;
             overflow-y: auto; overflow-x: hidden;
-            box-shadow: inset 0 0 100px rgba(0,255,65,0.02);
+            box-shadow: inset 0 0 100px rgba(255,255,255,0.02);
         }
         #mainScreen.active { display: flex; }
         #mainScreen.fadingIn { animation: fadeInMain 0.7s ease-out forwards; }
         @keyframes fadeInMain { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: blur(0); } }
         .main-header {
-            border-bottom: 2px solid var(--green-dark);
+            border-bottom: 2px solid var(--white-dark);
             padding: 18px 24px 14px;
             display: flex; align-items: center; justify-content: flex-start;
             background: rgba(0,0,0,0.85); position: sticky; top: 0; z-index: 10;
-            backdrop-filter: blur(8px); box-shadow: 0 2px 15px rgba(0,255,65,0.2);
+            backdrop-filter: blur(8px); box-shadow: 0 2px 15px rgba(255,255,255,0.2);
         }
         .main-header .logo {
-            color: var(--green-neon); font-size: 20px; font-weight: bold;
+            color: var(--white-neon); font-size: 20px; font-weight: bold;
             letter-spacing: 3px; text-shadow: var(--shadow-glow-strong);
-            filter: drop-shadow(0 0 8px rgba(0,255,65,0.5));
+            filter: drop-shadow(0 0 8px rgba(255,255,255,0.5));
         }
         .main-header .logo .underscore { animation: blink 0.8s step-end infinite; }
         .main-content { flex: 1; padding: 28px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
         .bio-section {
-            margin-bottom: 32px; border-left: 3px solid var(--green-dark);
+            margin-bottom: 32px; border-left: 3px solid var(--white-dark);
             padding-left: 20px; transition: all 0.3s;
-            background: rgba(0,10,0,0.2); box-shadow: 0 0 15px rgba(0,255,65,0.05);
+            background: rgba(20,20,20,0.2); box-shadow: 0 0 15px rgba(255,255,255,0.05);
             border-radius: 0 4px 4px 0;
         }
         .bio-section:hover {
-            border-left-color: var(--green-neon);
-            box-shadow: 0 0 25px rgba(0,255,65,0.15), inset 0 0 15px rgba(0,255,65,0.03);
-            background: rgba(0,20,0,0.3);
+            border-left-color: var(--white-neon);
+            box-shadow: 0 0 25px rgba(255,255,255,0.15), inset 0 0 15px rgba(255,255,255,0.03);
+            background: rgba(30,30,30,0.3);
         }
         .bio-section h2 {
-            color: var(--green-neon); font-size: 17px; font-weight: bold;
+            color: var(--white-neon); font-size: 17px; font-weight: bold;
             letter-spacing: 2px; margin-bottom: 12px;
             text-shadow: var(--shadow-glow-strong);
             display: flex; align-items: center; gap: 8px;
         }
         .bio-section h2::before {
-            content: '>'; color: var(--green-dim);
-            text-shadow: 0 0 6px var(--green-glow); font-size: 18px;
+            content: '>'; color: var(--white-dim);
+            text-shadow: 0 0 6px var(--white-glow); font-size: 18px;
         }
         .bio-section p {
             color: var(--text); font-size: 14px; font-weight: 600;
@@ -211,17 +178,17 @@
         }
         .status-dot {
             display: inline-block; width: 10px; height: 10px; border-radius: 50%;
-            background: var(--green-neon);
-            box-shadow: 0 0 10px var(--green-glow), 0 0 22px var(--green-glow);
+            background: var(--white-neon);
+            box-shadow: 0 0 10px var(--white-glow), 0 0 22px var(--white-glow);
             margin-right: 8px; animation: statusPulse 2s ease-in-out infinite;
         }
         @keyframes statusPulse {
-            0%,100% { box-shadow: 0 0 10px var(--green-glow), 0 0 22px var(--green-glow); }
-            50% { box-shadow: 0 0 18px #00ff66, 0 0 40px #00ff66, 0 0 60px #00ff44; }
+            0%,100% { box-shadow: 0 0 10px var(--white-glow), 0 0 22px var(--white-glow); }
+            50% { box-shadow: 0 0 18px #ffffff, 0 0 40px #ffffff, 0 0 60px #dddddd; }
         }
         .neon-quote {
-            font-size: 12px; font-weight: bold; color: var(--green-neon);
-            text-shadow: 0 0 8px var(--green-neon), 0 0 16px var(--green-neon);
+            font-size: 12px; font-weight: bold; color: var(--white-neon);
+            text-shadow: 0 0 8px var(--white-neon), 0 0 16px var(--white-neon);
             margin-top: 16px; font-style: italic; letter-spacing: 0.8px; opacity: 0.95;
         }
         .buttons-block {
@@ -230,26 +197,26 @@
         }
         .oval-btn {
             display: inline-block; padding: 14px 32px; border-radius: 50px;
-            background: rgba(0, 20, 0, 0.6); border: 1.5px solid var(--green-dark);
-            color: var(--green-bright); font-family: inherit; font-size: 15px;
+            background: rgba(30,30,30,0.6); border: 1.5px solid var(--white-dark);
+            color: var(--white-bright); font-family: inherit; font-size: 15px;
             font-weight: bold; letter-spacing: 1.8px; text-decoration: none;
             cursor: pointer; transition: all 0.25s ease;
-            text-shadow: 0 0 6px var(--green-glow);
-            box-shadow: 0 0 8px rgba(0, 255, 65, 0.2);
+            text-shadow: 0 0 6px var(--white-glow);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(4px); text-align: center; min-width: 160px;
         }
         .oval-btn:hover {
-            background: rgba(0, 40, 0, 0.8); border-color: var(--green-neon);
-            color: var(--green-neon); text-shadow: 0 0 12px var(--green-glow-strong);
-            box-shadow: 0 0 18px rgba(0, 255, 65, 0.4); transform: translateY(-1px);
+            background: rgba(60,60,60,0.8); border-color: var(--white-neon);
+            color: var(--white-neon); text-shadow: 0 0 12px var(--white-glow-strong);
+            box-shadow: 0 0 18px rgba(255, 255, 255, 0.4); transform: translateY(-1px);
         }
         #toast {
             position: fixed; bottom: 30px; right: 30px;
-            background: rgba(0, 10, 0, 0.9); border: 1px solid var(--green-neon);
-            color: var(--green-neon); padding: 12px 20px; border-radius: 30px;
+            background: rgba(20, 20, 20, 0.9); border: 1px solid var(--white-neon);
+            color: var(--white-neon); padding: 12px 20px; border-radius: 30px;
             font-family: inherit; font-size: 13px; font-weight: bold;
-            letter-spacing: 1px; text-shadow: 0 0 6px var(--green-glow);
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+            letter-spacing: 1px; text-shadow: 0 0 6px var(--white-glow);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
             opacity: 0; transform: translateY(20px); pointer-events: none;
             transition: opacity 0.3s ease, transform 0.3s ease; z-index: 300;
         }
@@ -270,8 +237,6 @@
             .buttons-block { gap: 12px; }
             .oval-btn { padding: 10px 22px; font-size: 13px; min-width: 130px; }
             #toast { right: 16px; bottom: 16px; font-size: 11px; padding: 10px 16px; }
-            .dot { font-size: 60px; }
-            #loadingDotsScreen { gap: 10px; }
         }
     </style>
 </head>
@@ -279,26 +244,17 @@
     <div class="scanlines"></div>
     <canvas id="matrixCanvas"></canvas>
     <div id="splashTitle">
-        <span class="neon-green">paralixium</span> <span class="white-text">presents</span>
+        <span class="neon-white">paralixium</span> <span class="white-text">presents</span>
     </div>
     <div id="clickHint">[ НАЖМИ КУДА-НИБУДЬ ЧТОБЫ ПРОДОЛЖИТЬ ]</div>
 
-    <!-- Console Screen -->
     <div id="consoleScreen">
         <div class="console-header">
-            <span class="neon-green">paralixium</span> <span class="white-text">presents</span>
+            <span class="neon-white">paralixium</span> <span class="white-text">presents</span>
         </div>
         <div class="console-body" id="consoleBody"></div>
     </div>
 
-    <!-- Экран с тремя точками (матрица на фоне) -->
-    <div id="loadingDotsScreen">
-        <span class="dot">.</span>
-        <span class="dot">.</span>
-        <span class="dot">.</span>
-    </div>
-
-    <!-- Main Bio Screen -->
     <div id="mainScreen">
         <header class="main-header">
             <div class="logo">paralixium<span class="underscore">_</span></div>
@@ -307,9 +263,9 @@
             <section class="bio-section" id="info">
                 <h2>info</h2>
                 <p>
-                    <span class="status-dot"></span> STATUS: <span style="color:#00ff41; text-shadow: 0 0 8px #00ff41;">ACTIVE</span> &nbsp;|&nbsp;
-                    UPTIME: <span style="color:#00cccc; text-shadow: 0 0 8px #00cccc;">99.7%</span> &nbsp;|&nbsp;
-                    LOC: <span style="color:#aaaaaa;">[REDACTED]</span>
+                    <span class="status-dot"></span> STATUS: <span style="color:#ffffff; text-shadow: 0 0 8px #ffffff;">ACTIVE</span> &nbsp;|&nbsp;
+                    UPTIME: <span style="color:#cccccc; text-shadow: 0 0 8px #cccccc;">99.7%</span> &nbsp;|&nbsp;
+                    LOC: <span style="color:#888888;">[REDACTED]</span>
                 </p>
                 <p class="neon-quote">
                     Жизнь коротка, искусство вечно, случайные обстоятельства скоропреходящи, опыт обманчив, суждения трудны.
@@ -317,7 +273,6 @@
             </section>
             <div class="buttons-block">
                 <a href="https://discord-sensor.com/members/1372205860452962418" target="_blank" class="oval-btn">Discord Sensor</a>
-                <a href="https://discord.gg/asterstore" target="_blank" class="oval-btn">Aster Store</a>
                 <button class="oval-btn" id="copyEmailBtn">Email</button>
             </div>
         </div>
@@ -332,7 +287,6 @@
             const clickHint = document.getElementById('clickHint');
             const consoleScreen = document.getElementById('consoleScreen');
             const consoleBody = document.getElementById('consoleBody');
-            const loadingDotsScreen = document.getElementById('loadingDotsScreen');
             const mainScreen = document.getElementById('mainScreen');
             const copyEmailBtn = document.getElementById('copyEmailBtn');
             const toast = document.getElementById('toast');
@@ -384,8 +338,8 @@
                     const char = charsArray[col.charIndex];
                     const x = i * fontSize;
                     const y = col.y * fontSize;
-                    ctx.fillStyle = `rgba(200,255,220,${0.9 + col.brightness * 0.1})`;
-                    ctx.shadowColor = '#00ff41';
+                    ctx.fillStyle = `rgba(220,220,220,${0.9 + col.brightness * 0.1})`;
+                    ctx.shadowColor = '#ffffff';
                     ctx.shadowBlur = 8 * col.brightness;
                     ctx.fillText(char, x, y);
                     const trailLength = 6 + Math.floor(col.brightness * 8);
@@ -393,7 +347,7 @@
                         const trailY = y - t * fontSize;
                         if (trailY < 0) continue;
                         const alpha = (1 - t / trailLength) * 0.7 * col.brightness;
-                        ctx.fillStyle = `rgba(0,255,65,${alpha})`;
+                        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
                         ctx.shadowBlur = 3 * (1 - t / trailLength) * col.brightness;
                         ctx.fillText(charsArray[Math.floor(Math.random() * charsArray.length)], x, trailY);
                     }
@@ -412,20 +366,28 @@
                 animationId = requestAnimationFrame(matrixLoop);
             }
 
+            function setMatrixVisible(visible) {
+                if (visible) {
+                    matrixCanvas.classList.remove('transparent');
+                    matrixCanvas.style.opacity = '1';
+                    matrixCanvas.style.zIndex = '84';
+                } else {
+                    matrixCanvas.classList.add('transparent');
+                    matrixCanvas.style.zIndex = '100';
+                }
+            }
+
             function skipMatrix() {
                 if (!matrixActive) return;
-                matrixActive = false;
-                cancelAnimationFrame(animationId);
-                matrixCanvas.classList.add('fading');
                 splashTitle.style.opacity = '0';
                 clickHint.style.opacity = '0';
                 clickHint.style.pointerEvents = 'none';
+                setMatrixVisible(false);
                 setTimeout(() => {
-                    matrixCanvas.classList.add('hidden');
                     splashTitle.style.display = 'none';
                     clickHint.style.display = 'none';
                     startConsole();
-                }, 650);
+                }, 600);
             }
 
             matrixCanvas.addEventListener('click', skipMatrix);
@@ -493,7 +455,7 @@
                         requestAnimationFrame(() => div.classList.add('visible'));
                         consoleBody.scrollTop = consoleBody.scrollHeight;
                         if (idx === consoleLines.length - 1) {
-                            setTimeout(() => showLoadingDots(), 900);
+                            setTimeout(() => transitionToMain(), 900);
                         }
                     }, totalDelay);
                 });
@@ -507,7 +469,7 @@
                 }, totalDelay - 200);
             }
 
-            function showLoadingDots() {
+            function transitionToMain() {
                 const cursor = document.getElementById('cursorLine');
                 if (cursor) cursor.remove();
                 consoleScreen.classList.add('fadingOut');
@@ -515,32 +477,7 @@
                     consoleActive = false;
                     consoleScreen.classList.remove('active', 'fadingOut');
                     consoleBody.innerHTML = '';
-                    
-                    // Показываем матрицу на фоне точек
-                    matrixCanvas.classList.remove('hidden', 'fading');
-                    matrixCanvas.style.opacity = '1';
-                    matrixCanvas.style.zIndex = '84'; // позади loadingDotsScreen (85)
-                    matrixActive = true;
-                    matrixLoop();
-                    
-                    loadingDotsScreen.classList.add('active');
-                    
-                    // Через 6 секунд переход к главному экрану
-                    setTimeout(() => {
-                        // Останавливаем матрицу
-                        matrixActive = false;
-                        cancelAnimationFrame(animationId);
-                        matrixCanvas.style.opacity = '0';
-                        matrixCanvas.style.transition = 'opacity 0.6s ease-out';
-                        
-                        loadingDotsScreen.classList.add('fading');
-                        setTimeout(() => {
-                            matrixCanvas.classList.add('hidden');
-                            matrixCanvas.style.zIndex = '100';
-                            loadingDotsScreen.classList.remove('active', 'fading');
-                            showMainScreen();
-                        }, 600);
-                    }, 6000);
+                    showMainScreen();
                 }, 550);
             }
 
@@ -578,9 +515,7 @@
                 if (keyBuffer.length > 20) keyBuffer = keyBuffer.slice(-20);
                 if (keyBuffer.includes('matrix')) {
                     keyBuffer = '';
-                    matrixCanvas.classList.remove('hidden', 'fading');
-                    matrixCanvas.style.opacity = '0.25';
-                    matrixCanvas.style.zIndex = '85';
+                    setMatrixVisible(true);
                     matrixActive = true;
                     matrixLoop();
                     setTimeout(() => {
@@ -589,7 +524,7 @@
                         matrixCanvas.style.opacity = '0';
                         matrixCanvas.style.transition = 'opacity 1s ease-out';
                         setTimeout(() => {
-                            matrixCanvas.classList.add('hidden');
+                            matrixCanvas.classList.add('transparent');
                             matrixCanvas.style.zIndex = '100';
                         }, 1000);
                     }, 2200);
