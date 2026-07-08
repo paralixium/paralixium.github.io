@@ -25,17 +25,30 @@
             font-family: 'Courier New', 'Lucida Console', 'Consolas', monospace;
             overflow: hidden;
             width: 100vw; height: 100vh;
-            cursor: crosshair;
+            cursor: crosshair; /* простой крестик */
             user-select: none;
             font-weight: 600;
             letter-spacing: 0.3px;
         }
+
+        /* затемняющий слой для матрицы на заставке */
+        #splashOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.35);
+            z-index: 1; /* над canvas, но под текстом */
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+
+        /* canvas matrix rain – УСИЛЕННЫЙ СПАМ СИМВОЛАМИ */
         #matrixCanvas {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 100; background: #000;
-            transition: opacity 0.6s ease-out;
+            z-index: 0; opacity: 1;
+            transition: opacity 0.5s ease;
         }
-        #matrixCanvas.transparent { opacity: 0; pointer-events: none; }
+        #matrixCanvas.dimmed { opacity: 0.35; }
+
+        /* splash screen */
         #splashTitle {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             z-index: 102;
@@ -43,14 +56,13 @@
             font-size: clamp(32px, 8vw, 72px);
             font-weight: bold; letter-spacing: 4px;
             text-align: center; transition: opacity 0.5s ease-out;
-            line-height: 1.2; cursor: pointer;
-        }
-        #splashTitle .neon-white {
+            line-height: 1.2;
             color: var(--white-neon);
             text-shadow: 0 0 15px var(--white-neon), 0 0 35px var(--white-neon), 0 0 70px #ffffff;
             animation: titleGlowWhite 2.5s ease-in-out infinite;
+            cursor: pointer; /* кликабельна */
         }
-        #splashTitle .white-text {
+        #splashTitle .white-part {
             color: #aaaaaa;
             text-shadow: 0 0 10px rgba(170,170,170,0.8), 0 0 25px rgba(170,170,170,0.5), 0 0 40px rgba(170,170,170,0.3);
             margin-left: 12px;
@@ -71,71 +83,52 @@
             0%,100% { opacity: 0.5; text-shadow: var(--shadow-glow); }
             50% { opacity: 1; text-shadow: var(--shadow-glow-strong); }
         }
-        #consoleScreen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 90; background: var(--terminal-bg);
-            display: none; flex-direction: column;
-            padding: 20px 24px; overflow: hidden;
-            box-shadow: inset 0 0 60px rgba(255,255,255,0.03);
-        }
-        #consoleScreen.active { display: flex; }
-        #consoleScreen.fadingOut { opacity: 0; transition: opacity 0.5s ease-out; pointer-events: none; }
-        .console-header {
-            text-align: center; font-size: 18px; font-weight: bold;
-            letter-spacing: 3px; padding: 8px 0 14px;
-            border-bottom: 1px solid var(--white-dark);
-            margin-bottom: 10px; box-shadow: 0 2px 8px rgba(255,255,255,0.1);
-            word-break: break-word;
-        }
-        .console-header .neon-white {
-            color: var(--white-neon); text-shadow: var(--shadow-glow-strong);
-            animation: headerGlowWhite 3s ease-in-out infinite;
-        }
-        .console-header .white-text {
-            color: #aaaaaa; text-shadow: 0 0 5px rgba(170,170,170,0.5), 0 0 12px rgba(170,170,170,0.3);
-        }
-        @keyframes headerGlowWhite {
-            0%,100% { text-shadow: 0 0 10px var(--white-neon), 0 0 25px var(--white-neon); }
-            50% { text-shadow: 0 0 20px #ffffff, 0 0 45px #dddddd, 0 0 70px #cccccc; }
-        }
-        .console-body {
-            flex: 1; color: var(--white-dim); font-size: 14px;
-            font-weight: bold; line-height: 1.7; overflow-y: auto;
-            padding: 6px 4px; letter-spacing: 0.6px;
-            white-space: pre-wrap; word-break: break-all;
-            text-shadow: 0 0 3px rgba(255,255,255,0.3);
-        }
-        .console-body .line { opacity: 0; animation: lineAppear 0.15s forwards; font-weight: bold; text-shadow: 0 0 6px rgba(255,255,255,0.4); }
-        .console-body .line.visible { opacity: 1; }
-        @keyframes lineAppear { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
-        .console-body .line-green { color: #cccccc; text-shadow: 0 0 10px var(--white-glow); }
-        .console-body .line-amber { color: #aaaaaa; text-shadow: 0 0 8px rgba(170,170,170,0.7); }
-        .console-body .line-cyan { color: #bbbbbb; text-shadow: 0 0 8px rgba(170,170,170,0.7); }
-        .console-body .line-dim { color: #666666; text-shadow: 0 0 4px rgba(255,255,255,0.3); }
-        .console-body .cursor-blink {
-            display: inline-block; width: 10px; height: 16px;
-            background: var(--white-neon); animation: blink 0.7s step-end infinite;
-            vertical-align: middle; margin-left: 3px;
-            box-shadow: 0 0 10px var(--white-glow), 0 0 20px var(--white-glow);
-        }
-        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* scanlines overlay */
         .scanlines {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 200;
             background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
             opacity: 0.6;
         }
+        .scan-line {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 15px white;
+            z-index: 201; pointer-events: none;
+            animation: scanDown 4s linear infinite;
+        }
+        @keyframes scanDown { 0% { top: 0; } 100% { top: 100%; } }
 
-        #mainScreen {
+        .glitch-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 80; background: var(--bg);
-            display: none; flex-direction: column;
+            pointer-events: none; z-index: 202;
+            background: linear-gradient(transparent 0%, rgba(255,255,255,0.03) 50%, transparent 100%);
+            animation: glitchFlash 3s infinite;
+            opacity: 0;
+        }
+        @keyframes glitchFlash {
+            0%, 95%, 100% { opacity: 0; }
+            96% { opacity: 0.2; }
+            98% { opacity: 0.1; }
+        }
+
+        /* main screen */
+        #mainScreen {
+            position: relative;
+            z-index: 10;
+            width: 100%; height: 100vh;
+            display: none;
+            flex-direction: column;
             overflow-y: auto; overflow-x: hidden;
-            box-shadow: inset 0 0 100px rgba(255,255,255,0.02);
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(1px);
         }
         #mainScreen.active { display: flex; }
         #mainScreen.fadingIn { animation: fadeInMain 0.7s ease-out forwards; }
         @keyframes fadeInMain { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: blur(0); } }
+
         .main-header {
             border-bottom: 2px solid var(--white-dark);
             padding: 18px 24px 14px;
@@ -147,34 +140,69 @@
             color: var(--white-neon); font-size: 20px; font-weight: bold;
             letter-spacing: 3px; text-shadow: var(--shadow-glow-strong);
             filter: drop-shadow(0 0 8px rgba(255,255,255,0.5));
+            position: relative;
+            display: inline-block;
         }
         .main-header .logo .underscore { animation: blink 0.8s step-end infinite; }
+        .glitch-text {
+            position: relative;
+            display: inline-block;
+        }
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0;
+            animation: glitchText 1.5s infinite;
+        }
+        .glitch-text::before { color: #0ff; z-index: -1; animation-delay: 0s; }
+        .glitch-text::after { color: #f0f; z-index: -2; animation-delay: 0.1s; }
+        @keyframes glitchText {
+            0%, 80%, 100% { opacity: 0; transform: translate(0); }
+            85% { opacity: 0.8; transform: translate(-2px, 2px); }
+            90% { opacity: 0.6; transform: translate(2px, -1px); }
+        }
         .main-content { flex: 1; padding: 28px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
         .bio-section {
             margin-bottom: 32px; border-left: 3px solid var(--white-dark);
             padding-left: 20px; transition: all 0.3s;
-            background: rgba(20,20,20,0.2); box-shadow: 0 0 15px rgba(255,255,255,0.05);
+            background: rgba(20,20,20,0.4); box-shadow: 0 0 15px rgba(255,255,255,0.05);
             border-radius: 0 4px 4px 0;
+            position: relative; overflow: hidden;
         }
+        .bio-section::after {
+            content: '';
+            position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            animation: shimmer 3s infinite;
+        }
+        @keyframes shimmer { 0% { left: -100%; } 100% { left: 100%; } }
         .bio-section:hover {
             border-left-color: var(--white-neon);
             box-shadow: 0 0 25px rgba(255,255,255,0.15), inset 0 0 15px rgba(255,255,255,0.03);
-            background: rgba(30,30,30,0.3);
+            background: rgba(30,30,30,0.5);
+            transform: scale(1.01);
         }
         .bio-section h2 {
             color: var(--white-neon); font-size: 17px; font-weight: bold;
             letter-spacing: 2px; margin-bottom: 12px;
             text-shadow: var(--shadow-glow-strong);
             display: flex; align-items: center; gap: 8px;
+            position: relative; z-index: 1;
         }
         .bio-section h2::before {
             content: '>'; color: var(--white-dim);
             text-shadow: 0 0 6px var(--white-glow); font-size: 18px;
+            animation: promptPulse 1s ease-in-out infinite alternate;
         }
+        @keyframes promptPulse { from { opacity: 0.5; } to { opacity: 1; } }
         .bio-section p {
             color: var(--text); font-size: 14px; font-weight: 600;
             line-height: 1.8; letter-spacing: 0.5px;
             text-shadow: 0 0 6px rgba(255,255,255,0.1);
+            position: relative; z-index: 1;
         }
         .status-dot {
             display: inline-block; width: 10px; height: 10px; border-radius: 50%;
@@ -190,26 +218,56 @@
             font-size: 12px; font-weight: bold; color: var(--white-neon);
             text-shadow: 0 0 8px var(--white-neon), 0 0 16px var(--white-neon);
             margin-top: 16px; font-style: italic; letter-spacing: 0.8px; opacity: 0.95;
+            animation: textFlicker 5s infinite;
+        }
+        @keyframes textFlicker {
+            0%, 95%, 100% { opacity: 0.95; }
+            96% { opacity: 0.6; }
+            98% { opacity: 1; }
         }
         .buttons-block {
             display: flex; gap: 16px; flex-wrap: wrap;
-            justify-content: flex-start; margin-top: 8px; margin-bottom: 40px;
+            justify-content: flex-start; margin-top: 20px; margin-bottom: 40px;
+            position: relative; z-index: 1;
         }
         .oval-btn {
             display: inline-block; padding: 14px 32px; border-radius: 50px;
-            background: rgba(30,30,30,0.6); border: 1.5px solid var(--white-dark);
+            background: rgba(30,30,30,0.7); border: 1.5px solid var(--white-dark);
             color: var(--white-bright); font-family: inherit; font-size: 15px;
             font-weight: bold; letter-spacing: 1.8px; text-decoration: none;
-            cursor: pointer; transition: all 0.25s ease;
+            transition: all 0.25s ease;
             text-shadow: 0 0 6px var(--white-glow);
             box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(4px); text-align: center; min-width: 160px;
+            position: relative; overflow: hidden;
+        }
+        .oval-btn::after {
+            content: '';
+            position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
+            opacity: 0; transition: opacity 0.3s;
         }
         .oval-btn:hover {
-            background: rgba(60,60,60,0.8); border-color: var(--white-neon);
+            background: rgba(60,60,60,0.9); border-color: var(--white-neon);
             color: var(--white-neon); text-shadow: 0 0 12px var(--white-glow-strong);
-            box-shadow: 0 0 18px rgba(255, 255, 255, 0.4); transform: translateY(-1px);
+            box-shadow: 0 0 18px rgba(255, 255, 255, 0.4); transform: translateY(-2px);
         }
+        .oval-btn:hover::after { opacity: 1; }
+
+        /* particles */
+        .particle {
+            position: fixed; pointer-events: none;
+            background: white; border-radius: 50%;
+            box-shadow: 0 0 6px white;
+            animation: floatUp linear infinite;
+            z-index: 50;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0); opacity: 0.8; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
         #toast {
             position: fixed; bottom: 30px; right: 30px;
             background: rgba(20, 20, 20, 0.9); border: 1px solid var(--white-neon);
@@ -222,10 +280,10 @@
         }
         #toast.show { opacity: 1; transform: translateY(0); }
 
+        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
         @media (max-width: 600px) {
             #splashTitle { font-size: 28px; letter-spacing: 2px; }
-            .console-header { font-size: 14px; }
-            .console-body { font-size: 12px; }
             .main-header { padding: 12px 14px; }
             .main-header .logo { font-size: 16px; }
             .main-content { padding: 16px 12px; }
@@ -241,23 +299,22 @@
     </style>
 </head>
 <body>
-    <div class="scanlines"></div>
     <canvas id="matrixCanvas"></canvas>
-    <div id="splashTitle">
-        <span class="neon-white">paralixium</span> <span class="white-text">presents</span>
-    </div>
+    <div id="splashOverlay"></div>
+    <div class="scanlines"></div>
+    <div class="scan-line"></div>
+    <div class="glitch-overlay"></div>
+
+    <!-- Splash Screen -->
+    <div id="splashTitle">paralixium <span class="white-part">presents</span></div>
     <div id="clickHint">[ НАЖМИ КУДА-НИБУДЬ ЧТОБЫ ПРОДОЛЖИТЬ ]</div>
 
-    <div id="consoleScreen">
-        <div class="console-header">
-            <span class="neon-white">paralixium</span> <span class="white-text">presents</span>
-        </div>
-        <div class="console-body" id="consoleBody"></div>
-    </div>
-
+    <!-- Main Screen -->
     <div id="mainScreen">
         <header class="main-header">
-            <div class="logo">paralixium<span class="underscore">_</span></div>
+            <div class="logo">
+                <span class="glitch-text" data-text="paralixium">paralixium</span><span class="underscore">_</span>
+            </div>
         </header>
         <div class="main-content">
             <section class="bio-section" id="info">
@@ -281,215 +338,128 @@
 
     <script>
         (function() {
-            const matrixCanvas = document.getElementById('matrixCanvas');
-            const ctx = matrixCanvas.getContext('2d');
-            const splashTitle = document.getElementById('splashTitle');
-            const clickHint = document.getElementById('clickHint');
-            const consoleScreen = document.getElementById('consoleScreen');
-            const consoleBody = document.getElementById('consoleBody');
-            const mainScreen = document.getElementById('mainScreen');
-            const copyEmailBtn = document.getElementById('copyEmailBtn');
-            const toast = document.getElementById('toast');
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
 
-            let matrixActive = true, consoleActive = false, mainActive = false, animationId, columns = [];
-            const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFabcdef<>{}[]|/\\!@#$%^&*()_+-=:;';
-            const charsArray = chars.split('');
-            const fontSize = 15;
-            let canvasWidth, canvasHeight, numColumns;
+            // УСИЛЕННЫЙ МАТРИЧНЫЙ ДОЖДЬ: мельче шрифт -> больше колонок, выше скорость
+            const fontSize = 10; // было 14, теперь мельче -> плотнее
+            let columns = [];
+            let width, height;
 
-            function resizeCanvas() {
-                canvasWidth = window.innerWidth;
-                canvasHeight = window.innerHeight;
-                matrixCanvas.width = canvasWidth;
-                matrixCanvas.height = canvasHeight;
-                numColumns = Math.floor(canvasWidth / fontSize) + 1;
+            // Расширенный набор символов: латиница, цифры, спецсимволы, катакана
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:",./<>?`~アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+            const charsArr = chars.split('');
+
+            function resizeMatrix() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+                const columnCount = Math.floor(width / fontSize) + 1;
                 columns = [];
-                for (let i = 0; i < numColumns; i++) {
+                for (let i = 0; i < columnCount; i++) {
                     columns.push({
-                        y: Math.random() * canvasHeight / fontSize * -1,
-                        speed: 0.6 + Math.random() * 2.8,
-                        charIndex: Math.floor(Math.random() * charsArray.length),
-                        updateRate: Math.floor(2 + Math.random() * 8),
-                        updateCounter: Math.floor(Math.random() * 8),
-                        brightness: 0.4 + Math.random() * 0.6,
-                        wingFactor: 0,
+                        y: Math.random() * height / fontSize,
+                        speed: 0.5 + Math.random() * 2.5, // выше скорость
+                        charIndex: Math.floor(Math.random() * charsArr.length),
+                        brightness: 0.6 + Math.random() * 0.4,
                     });
                 }
-                const center = numColumns / 2;
-                columns.forEach((col, i) => {
-                    const dist = Math.abs(i - center) / center;
-                    col.wingFactor = 1 - dist * 0.7;
-                    col.speed *= (0.7 + col.wingFactor * 0.6);
-                    col.brightness = Math.min(1, col.brightness + col.wingFactor * 0.25);
-                });
             }
+            window.addEventListener('resize', resizeMatrix);
+            resizeMatrix();
 
             function drawMatrix() {
-                if (!matrixActive) return;
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.055)';
-                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-                ctx.font = fontSize + 'px "Courier New", monospace';
-                columns.forEach((col, i) => {
-                    col.updateCounter++;
-                    if (col.updateCounter >= col.updateRate) {
-                        col.updateCounter = 0;
-                        col.charIndex = Math.floor(Math.random() * charsArray.length);
-                    }
-                    const char = charsArray[col.charIndex];
+                // фон с большей непрозрачностью для более чётких следов
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+                ctx.fillRect(0, 0, width, height);
+                ctx.font = `bold ${fontSize}px "Courier New", monospace`;
+
+                for (let i = 0; i < columns.length; i++) {
+                    const col = columns[i];
+                    const char = charsArr[col.charIndex];
                     const x = i * fontSize;
                     const y = col.y * fontSize;
-                    ctx.fillStyle = `rgba(220,220,220,${0.9 + col.brightness * 0.1})`;
-                    ctx.shadowColor = '#ffffff';
-                    ctx.shadowBlur = 8 * col.brightness;
+
+                    // белые символы с яркостью
+                    ctx.fillStyle = `rgba(255, 255, 255, ${col.brightness})`;
+                    ctx.shadowColor = 'white';
+                    ctx.shadowBlur = 4 * col.brightness;
                     ctx.fillText(char, x, y);
-                    const trailLength = 6 + Math.floor(col.brightness * 8);
-                    for (let t = 1; t <= trailLength; t++) {
-                        const trailY = y - t * fontSize;
-                        if (trailY < 0) continue;
-                        const alpha = (1 - t / trailLength) * 0.7 * col.brightness;
-                        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-                        ctx.shadowBlur = 3 * (1 - t / trailLength) * col.brightness;
-                        ctx.fillText(charsArray[Math.floor(Math.random() * charsArray.length)], x, trailY);
-                    }
+
                     col.y += col.speed;
-                    if (col.y * fontSize > canvasHeight + fontSize * trailLength) {
+                    if (col.y * fontSize > height + fontSize * 5) {
                         col.y = -Math.random() * 30;
-                        col.speed = 0.5 + Math.random() * 3.0;
+                        col.charIndex = Math.floor(Math.random() * charsArr.length);
+                        col.speed = 0.5 + Math.random() * 2.5;
                     }
-                });
-                ctx.shadowBlur = 0;
-            }
-
-            function matrixLoop() {
-                if (!matrixActive) return;
-                drawMatrix();
-                animationId = requestAnimationFrame(matrixLoop);
-            }
-
-            function setMatrixVisible(visible) {
-                if (visible) {
-                    matrixCanvas.classList.remove('transparent');
-                    matrixCanvas.style.opacity = '1';
-                    matrixCanvas.style.zIndex = '84';
-                } else {
-                    matrixCanvas.classList.add('transparent');
-                    matrixCanvas.style.zIndex = '100';
                 }
+                ctx.shadowBlur = 0;
+                requestAnimationFrame(drawMatrix);
             }
+            drawMatrix();
 
-            function skipMatrix() {
-                if (!matrixActive) return;
+            // floating particles
+            function createParticle() {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const size = Math.random() * 3 + 1;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.animationDuration = Math.random() * 4 + 3 + 's';
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 7000);
+            }
+            setInterval(createParticle, 300); // чуть чаще частицы
+
+            // splash screen interaction
+            const splashTitle = document.getElementById('splashTitle');
+            const clickHint = document.getElementById('clickHint');
+            const mainScreen = document.getElementById('mainScreen');
+            const splashOverlay = document.getElementById('splashOverlay');
+            let splashActive = true;
+
+            function skipSplash() {
+                if (!splashActive) return;
+                splashActive = false;
                 splashTitle.style.opacity = '0';
                 clickHint.style.opacity = '0';
                 clickHint.style.pointerEvents = 'none';
-                setMatrixVisible(false);
+                splashOverlay.style.opacity = '0';
+                canvas.classList.add('dimmed');
+
                 setTimeout(() => {
                     splashTitle.style.display = 'none';
                     clickHint.style.display = 'none';
-                    startConsole();
+                    splashOverlay.style.display = 'none';
+                    mainScreen.classList.add('active', 'fadingIn');
+                    document.body.style.overflow = 'auto';
                 }, 600);
             }
 
-            matrixCanvas.addEventListener('click', skipMatrix);
-            splashTitle.addEventListener('click', skipMatrix);
-            clickHint.addEventListener('click', skipMatrix);
+            canvas.addEventListener('click', skipSplash);
+            splashTitle.addEventListener('click', skipSplash);
+            clickHint.addEventListener('click', skipSplash);
             document.addEventListener('keydown', function(e) {
-                if (matrixActive && (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape')) {
+                if (splashActive && (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape')) {
                     e.preventDefault();
-                    skipMatrix();
+                    skipSplash();
                 }
             });
 
-            let autoSkipTimer = setTimeout(() => { if (matrixActive) skipMatrix(); }, 14000);
+            let autoSkipTimer = setTimeout(() => { if (splashActive) skipSplash(); }, 14000);
             document.addEventListener('mousemove', () => {
-                if (matrixActive) {
+                if (splashActive) {
                     clearTimeout(autoSkipTimer);
-                    autoSkipTimer = setTimeout(() => { if (matrixActive) skipMatrix(); }, 14000);
+                    autoSkipTimer = setTimeout(() => { if (splashActive) skipSplash(); }, 14000);
                 }
             });
 
-            const consoleLines = [
-                { text: '', delay: 60 },
-                { text: '[BOOT] Инициализация ядра системы...', delay: 300, cls: 'line-green' },
-                { text: '[BOOT] Проверка контрольных сумм... OK', delay: 250, cls: 'line-dim' },
-                { text: '[BOOT] Загрузка модулей безопасности...', delay: 200, cls: 'line-green' },
-                { text: '[BOOT] Модуль шифрования: AES-256-GCM... ACTIVATED', delay: 300, cls: 'line-cyan' },
-                { text: '[BOOT] Модуль обфускации трафика... ACTIVATED', delay: 250, cls: 'line-cyan' },
-                { text: '[BOOT] Установка защищённого соединения...', delay: 200, cls: 'line-green' },
-                { text: '[NET] Пинг шлюза: 0.3ms', delay: 180, cls: 'line-dim' },
-                { text: '[NET] Маршрутизация через TOR... OK', delay: 250, cls: 'line-amber' },
-                { text: '[NET] VPN-туннель установлен', delay: 200, cls: 'line-cyan' },
-                { text: '[SYS] Проверка окружения...', delay: 200, cls: 'line-green' },
-                { text: '[SYS] ОС: Linux 6.x | Arch: x86_64 | Shell: zsh', delay: 200, cls: 'line-dim' },
-                { text: '[SYS] Доступная память: 15.6 GB / 16.0 GB', delay: 150, cls: 'line-dim' },
-                { text: '[SYS] Загрузка CPU: 3%', delay: 150, cls: 'line-dim' },
-                { text: '', delay: 100 },
-                { text: '[LOAD] Загрузка пользовательских модулей...', delay: 300, cls: 'line-green' },
-                { text: '[LOAD] [#######···········] 34%', delay: 350, cls: 'line-amber' },
-                { text: '[LOAD] [##############····] 72%', delay: 400, cls: 'line-amber' },
-                { text: '[LOAD] [##################] 96%', delay: 350, cls: 'line-amber' },
-                { text: '[LOAD] [###################] 100% - OK', delay: 300, cls: 'line-green' },
-                { text: '', delay: 100 },
-                { text: '[AUTH] Проверка подписи окружения...', delay: 300, cls: 'line-green' },
-                { text: '[AUTH] Хеш совпадает. Доступ подтверждён.', delay: 250, cls: 'line-cyan' },
-                { text: '', delay: 150 },
-                { text: '>>> ACCESS GRANTED <<<', delay: 400, cls: 'line-green' },
-                { text: '', delay: 200 },
-                { text: 'Загрузка интерфейса...', delay: 300, cls: 'line-dim' },
-            ];
-
-            function startConsole() {
-                consoleActive = true;
-                consoleScreen.classList.add('active');
-                consoleBody.innerHTML = '';
-                mainScreen.classList.remove('active');
-                let totalDelay = 0;
-                consoleLines.forEach((lineObj, idx) => {
-                    totalDelay += lineObj.delay + 60;
-                    setTimeout(() => {
-                        if (!consoleActive) return;
-                        const div = document.createElement('div');
-                        div.className = 'line ' + (lineObj.cls || '');
-                        div.textContent = lineObj.text || ' ';
-                        consoleBody.appendChild(div);
-                        requestAnimationFrame(() => div.classList.add('visible'));
-                        consoleBody.scrollTop = consoleBody.scrollHeight;
-                        if (idx === consoleLines.length - 1) {
-                            setTimeout(() => transitionToMain(), 900);
-                        }
-                    }, totalDelay);
-                });
-                setTimeout(() => {
-                    if (!consoleActive) return;
-                    const cursor = document.createElement('div');
-                    cursor.className = 'line';
-                    cursor.innerHTML = '<span class="cursor-blink"></span>';
-                    cursor.id = 'cursorLine';
-                    consoleBody.appendChild(cursor);
-                }, totalDelay - 200);
-            }
-
-            function transitionToMain() {
-                const cursor = document.getElementById('cursorLine');
-                if (cursor) cursor.remove();
-                consoleScreen.classList.add('fadingOut');
-                setTimeout(() => {
-                    consoleActive = false;
-                    consoleScreen.classList.remove('active', 'fadingOut');
-                    consoleBody.innerHTML = '';
-                    showMainScreen();
-                }, 550);
-            }
-
-            function showMainScreen() {
-                mainActive = true;
-                mainScreen.classList.add('active', 'fadingIn');
-                document.body.style.overflow = 'auto';
-                document.body.style.cursor = 'default';
-                setTimeout(() => mainScreen.classList.remove('fadingIn'), 750);
-            }
-
-            copyEmailBtn.addEventListener('click', async () => {
+            // copy email
+            const copyBtn = document.getElementById('copyEmailBtn');
+            const toast = document.getElementById('toast');
+            copyBtn.addEventListener('click', async () => {
                 try {
                     await navigator.clipboard.writeText('paralixium@info.com');
                 } catch (err) {
@@ -504,31 +474,18 @@
                 setTimeout(() => toast.classList.remove('show'), 2000);
             });
 
-            resizeCanvas();
-            matrixLoop();
-            window.addEventListener('resize', () => { if (matrixActive) resizeCanvas(); });
+            // glitch overlay subtle interaction
+            let glitchTimer;
+            document.addEventListener('mousemove', () => {
+                clearTimeout(glitchTimer);
+                document.querySelector('.glitch-overlay').style.opacity = '0.03';
+                glitchTimer = setTimeout(() => {
+                    document.querySelector('.glitch-overlay').style.opacity = '0';
+                }, 150);
+            });
 
-            let keyBuffer = '';
-            document.addEventListener('keydown', (e) => {
-                if (!mainActive) return;
-                keyBuffer += e.key.toLowerCase();
-                if (keyBuffer.length > 20) keyBuffer = keyBuffer.slice(-20);
-                if (keyBuffer.includes('matrix')) {
-                    keyBuffer = '';
-                    setMatrixVisible(true);
-                    matrixActive = true;
-                    matrixLoop();
-                    setTimeout(() => {
-                        matrixActive = false;
-                        cancelAnimationFrame(animationId);
-                        matrixCanvas.style.opacity = '0';
-                        matrixCanvas.style.transition = 'opacity 1s ease-out';
-                        setTimeout(() => {
-                            matrixCanvas.classList.add('transparent');
-                            matrixCanvas.style.zIndex = '100';
-                        }, 1000);
-                    }, 2200);
-                }
+            mainScreen.addEventListener('animationend', () => {
+                mainScreen.classList.remove('fadingIn');
             });
         })();
     </script>
