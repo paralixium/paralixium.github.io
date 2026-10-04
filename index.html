@@ -643,13 +643,6 @@
   }
 
   /* ============ CHANNELS ============ */
-  .channels{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:10px;
-  }
-  @media(max-width:640px){.channels{grid-template-columns:1fr}}
-
   .chan-group{
     padding:22px;
     background:var(--surface);
@@ -658,6 +651,7 @@
     transition:border-color .25s ease, background .25s ease, box-shadow .25s ease;
     position:relative;
     overflow:hidden;
+    max-width:520px;
   }
   .chan-group::before{
     content:"";
@@ -1064,42 +1058,32 @@
   <section class="section reveal">
     <div class="s-head">
       <span class="s-num">05</span>
-      <span class="s-title">Каналы для стаффа</span>
+      <span class="s-title">Рабочие каналы</span>
     </div>
 
-    <div class="channels">
-
-      <div class="chan-group">
-        <div class="chan-title">Для менеджеров</div>
-        <ul class="chan-list">
-          <li><b>manager-chat</b> — общий чат менеджеров</li>
-          <li><b>manager-reports</b> — отчёты о розыгрышах</li>
-          <li><b>manager-warnings</b> — журнал выговоров</li>
-          <li><b>manager-hosting</b> — согласование хостинга</li>
-        </ul>
-      </div>
-
-      <div class="chan-group">
-        <div class="chan-title">Для хелперов</div>
-        <ul class="chan-list">
-          <li><b>helper-chat</b> — общий чат хелперов</li>
-          <li><b>helper-bumps</b> — отчётность по бампам</li>
-        </ul>
-      </div>
-
+    <div class="chan-group">
+      <div class="chan-title">Каналы стаффа</div>
+      <ul class="chan-list">
+        <li><b>manager-chat</b> — общий чат менеджеров</li>
+        <li><b>manager-reports</b> — отчёты о розыгрышах</li>
+        <li><b>manager-warnings</b> — журнал выговоров</li>
+        <li><b>manager-hosting</b> — согласование хостинга</li>
+        <li><b>helper-chat</b> — общий чат хелперов</li>
+        <li><b>helper-bumps</b> — отчётность по бампам</li>
+      </ul>
     </div>
   </section>
 
   <section class="section reveal">
     <div class="s-head">
       <span class="s-num">06</span>
-      <span class="s-title">Обязанности хелперов</span>
+      <span class="s-title">Дополнительные обязанности</span>
     </div>
 
     <ul class="rules">
       <li>
         <span class="r-num">/ 01</span>
-        <span class="r-txt">Хелпер — участник, ответственный за <b>поддержку и продвижение сервера</b> через специализированные команды. Деятельность направлена на повышение позиций сервера в рейтингах мониторинговых платформ.</span>
+        <span class="r-txt">Помимо хостинга менеджер также отвечает за <b>поддержку и продвижение сервера</b> через специализированные команды. Деятельность направлена на повышение позиций сервера в рейтингах мониторинговых платформ.</span>
       </li>
       <li>
         <span class="r-num">/ 02</span>
@@ -1107,7 +1091,7 @@
       </li>
       <li>
         <span class="r-num">/ 03</span>
-        <span class="r-txt">Отпуск и отгул оформляются в специальном канале — предупреждаешь людей с ролью, <b>отвечающих за хелперов</b>. Доступно после <b>недели работы</b>.</span>
+        <span class="r-txt">Отпуск и отгул оформляются в специальном канале — предупреждаешь людей с ролью, <b>отвечающих за менеджеров</b>. Доступно после <b>недели работы</b>.</span>
       </li>
     </ul>
 
@@ -1143,7 +1127,7 @@
         </li>
         <li>
           <span class="form-num">/ 04</span>
-          <span class="form-txt">Отмечаете человека с ролью <b>Куратор</b> — <b>«Отвечает за Хелпер»</b>.</span>
+          <span class="form-txt">Отмечаете человека с ролью <b>TeamLead</b> и <b>Director</b>.</span>
         </li>
       </ul>
     </div>
